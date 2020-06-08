@@ -1,0 +1,114 @@
+name: Provider
+on: 
+  pull_request:
+    branches: 
+      - master
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: make tools
+
+      - name: run lint
+        run: |
+          export PATH="$PATH:$HOME/go/bin"
+          export GOPATH=$HOME/go
+          GOGC=5 make lint
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: make tools
+
+      - name: run tflint
+        run: |
+          export PATH="$PATH:$HOME/go/bin"
+          export GOPATH=$HOME/go
+          GO111MODULE=off go get -u github.com/hashicorp/terraform
+          make tflint
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: make tools
+
+      - name: make test
+        run: |
+          export PATH="$PATH:$HOME/go/bin"
+          export GOPATH=$HOME/go
+          make test
+  website-lint:
+    name: website-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: make tools
+
+      - name: make website-lint
+        run: |
+          export PATH="$PATH:$HOME/go/bin"
+          export GOPATH=$HOME/go
+          GO111MODULE=off go get -u github.com/hashicorp/terraform
+          make website-lint
+  website-test:
+    name: website-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: make tools
+
+      - name: make website-test
+        run: |
+          export PATH="$PATH:$HOME/go/bin"
+          export GOPATH=$HOME/go
+          make website-test
