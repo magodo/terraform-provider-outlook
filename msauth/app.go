@@ -1,26 +1,38 @@
 package msauth
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+	"runtime"
+
+	"github.com/magodo/terraform-provider-outlook/version"
+)
 
 type App struct {
 	client    Client
-	c         *http.Client
 	authority *authority
 }
 
 func NewApp(client Client, authorityURL string) (*App, error) {
-	// TODO: refer to code in: _build_client()... to add some defaults (header/body)
-	c := http.DefaultClient
+	cctx := HTTPClientContext{
+		Client: http.DefaultClient,
+		DefaultHeader: map[string][]string{
+			"x-client-sku": []string{"TerraformProvider.Outlook"},
+			"x-client-ver": []string{version.Version},
+			"x-client-os":  []string{runtime.GOOS},
+			"x-client-cpu": []string{runtime.GOARCH},
+		},
+	}
 	if authorityURL == "" {
 		authorityURL = "https://login.microsoftonline.com/common"
 	}
-	authority, err := NewAuthority(authorityURL, c)
+	authority, err := NewAuthority(authorityURL, cctx.Client)
 	if err != nil {
 		return nil, err
 	}
-	return &App{client, c, authority}, nil
+	return &App{client, authority}, nil
 }
 
-func (app *App) ObtainToken() map[string]string {
-	return app.client.ObtainToken(app.c, app.authority)
+func (app *App) ObtainToken(ctx context.Context) (map[string]string, error) {
+	return app.client.ObtainToken(ctx, app.authority)
 }

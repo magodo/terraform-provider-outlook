@@ -1,8 +1,8 @@
 package msauth
 
-import "net/http"
+import "context"
 
 type Client interface {
 	// ObtainToken obtains JWT token in different kinds of grant types, depends on the type implementing the interface.
-	ObtainToken(client *http.Client, authority *authority) map[string]string
+	ObtainToken(ctx context.Context, authority *authority) (map[string]string, error)
 }
