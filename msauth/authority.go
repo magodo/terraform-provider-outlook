@@ -12,8 +12,8 @@ import (
 )
 
 type authority struct {
-	AuthorizationEndpoint string
-	TokenEndpoint         string
+	AuthorizationEndpoint string `json:"authorization_endpoint"`
+	TokenEndpoint         string `json:"token_endpoint"`
 	Tenant                string
 }
 
@@ -25,14 +25,14 @@ func NewAuthority(authorityURL string, client *http.Client) (*authority, error) 
 	}
 
 	if u.Scheme != "https" {
-		return nil, fmt.Errorf("Authority URL %s expect to use HTTPS")
+		return nil, fmt.Errorf("Authority URL %s expect to use HTTPS", authorityURL)
 	}
 
 	paths := strings.Split(u.Path, "/")
-	if len(paths) == 0 || paths[0] == "" {
-		return nil, fmt.Errorf(`Authority URL %s should has the form: "https://<host>/<tenant>"`)
+	if len(paths) != 2 || paths[1] == "" {
+		return nil, fmt.Errorf(`Authority URL %s should has the form: "https://<host>/<tenant>"`, authorityURL)
 	}
-	tenant := paths[0]
+	tenant := paths[1]
 
 	// Discover tenant
 	tenantDiscoveryEndpoint := fmt.Sprintf("https://%s%s/v2.0/.well-known/openid-configuration", u.Hostname(), u.Path)
