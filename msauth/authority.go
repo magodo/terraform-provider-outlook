@@ -14,6 +14,7 @@ import (
 type authority struct {
 	AuthorizationEndpoint string `json:"authorization_endpoint"`
 	TokenEndpoint         string `json:"token_endpoint"`
+	DeviceEndpoint        string
 	Tenant                string
 }
 
@@ -59,6 +60,7 @@ func NewAuthority(authorityURL string, client *http.Client) (*authority, error) 
 	if auth.TokenEndpoint == "" {
 		return nil, errors.New(`"token_endpoint" is empty`)
 	}
+	auth.DeviceEndpoint = fmt.Sprintf("https://%s%s/oauth2/v2.0/devicecode", u.Hostname(), u.Path)
 	auth.Tenant = tenant
 
 	return &auth, nil

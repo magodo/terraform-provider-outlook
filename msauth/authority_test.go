@@ -16,6 +16,7 @@ func TestNewAuthority(t *testing.T) {
 			&authority{
 				AuthorizationEndpoint: "https://login.microsoftonline.com/a20e83fc-34d6-4c8e-8ae7-bf3d5eac71aa/oauth2/v2.0/authorize",
 				TokenEndpoint:         "https://login.microsoftonline.com/a20e83fc-34d6-4c8e-8ae7-bf3d5eac71aa/oauth2/v2.0/token",
+				DeviceEndpoint:        "https://login.microsoftonline.com/a20e83fc-34d6-4c8e-8ae7-bf3d5eac71aa/oauth2/v2.0/devicecode",
 				Tenant:                "a20e83fc-34d6-4c8e-8ae7-bf3d5eac71aa",
 			},
 		},
