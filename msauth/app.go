@@ -17,10 +17,10 @@ func NewApp(client Client, authorityURL string) (*App, error) {
 	c := NewHTTPClient(
 		http.DefaultClient,
 		map[string][]string{
-			"x-client-sku": []string{"TerraformProvider.Outlook"},
-			"x-client-ver": []string{version.Version},
-			"x-client-os":  []string{runtime.GOOS},
-			"x-client-cpu": []string{runtime.GOARCH},
+			"x-client-sku": {"TerraformProvider.Outlook"},
+			"x-client-ver": {version.Version},
+			"x-client-os":  {runtime.GOOS},
+			"x-client-cpu": {runtime.GOARCH},
 		},
 	)
 	if authorityURL == "" {
@@ -33,6 +33,6 @@ func NewApp(client Client, authorityURL string) (*App, error) {
 	return &App{client, authority}, nil
 }
 
-func (app *App) ObtainToken(ctx context.Context) (string, error) {
+func (app *App) ObtainToken(ctx context.Context) (*Token, error) {
 	return app.client.ObtainToken(ctx, app.authority)
 }
