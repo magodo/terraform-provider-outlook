@@ -1,14 +1,18 @@
 package msauth
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // Token is defined at: https://tools.ietf.org/html/rfc6749#section-5.1
 type Token struct {
-	AccessToken  string  `json:"access_token"`
-	TokenType    string  `json:"token_type"`
-	ExpiresIn    *int    `json:"expires_in"`
-	RefreshToken *string `json:"refresh_token"`
-	Scope        *string `json:"scope"`
+	AccessToken  string    `json:"access_token"`
+	TokenType    string    `json:"token_type"`
+	ExpiresIn    int       `json:"expires_in"` // "expires_in" is defined as RECOMMENDED, while in MSAUTH it is always returned, hence defined as `int`
+	expiresOn    time.Time // The time when the access token is expired
+	RefreshToken *string   `json:"refresh_token"`
+	Scope        *string   `json:"scope"`
 }
 
 const (

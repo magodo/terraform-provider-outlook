@@ -93,6 +93,39 @@ func (c *clientViaDeviceFlow) ObtainToken(ctx context.Context, authority *author
 	}
 }
 
+func (c *clientViaDeviceFlow) RefreshToken(ctx context.Context, authority *authority, refreshToken *string) (*Token, error) {
+	if refreshToken == nil {
+		return nil, errors.New("nil refresh token")
+	}
+	body := url.Values{}
+	body.Set("grant_type", "refresh_token")
+	body.Set("refresh_token", *refreshToken)
+	body.Set("scope", c.scope.String())
+
+	req, err := c.client.NewRequestWithContext(ctx, http.MethodPost, authority.TokenEndpoint, strings.NewReader(body.Encode()))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Accept", "application/x-www-form-urlencoded")
+	token, tokenerr, err := c.client.DoToken(req)
+	if err != nil {
+		return nil, err
+	}
+	if tokenerr != nil {
+		return nil, errors.New(tokenerr.String())
+	}
+	return token, nil
+}
+
+func (c *clientViaDeviceFlow) GetClientID() string {
+	return c.clientID
+}
+
+func (c *clientViaDeviceFlow) GetClientScope() scope {
+	return c.scope
+}
+
 func NewClientViaDeviceFlow(client *HTTPClient, scope scope, clientID string, f DeviceAuthorizationUserInteractionFunc) Client {
 	return &clientViaDeviceFlow{
 		client:   client,

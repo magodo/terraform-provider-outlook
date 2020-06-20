@@ -47,6 +47,19 @@ func (c *clientViaClientCredential) ObtainToken(ctx context.Context, authority *
 	return token, nil
 }
 
+// RefreshToken of client credential will simply invoke another access token authorization.
+func (c *clientViaClientCredential) RefreshToken(ctx context.Context, authority *authority, _ *string) (*Token, error) {
+	return c.ObtainToken(ctx, authority)
+}
+
+func (c *clientViaClientCredential) GetClientID() string {
+	return c.clientID
+}
+
+func (c *clientViaClientCredential) GetClientScope() scope {
+	return c.scope
+}
+
 func NewClientViaClientCredential(client *HTTPClient, scope scope, clientID, clientCredential string) Client {
 	return &clientViaClientCredential{
 		client:           client,
