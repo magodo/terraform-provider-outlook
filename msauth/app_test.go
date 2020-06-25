@@ -1,3 +1,5 @@
+// +build ignore
+
 package msauth_test
 
 import (

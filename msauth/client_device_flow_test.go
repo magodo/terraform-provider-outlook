@@ -3,7 +3,6 @@ package msauth_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
@@ -18,17 +17,13 @@ func TestObtainTokenViaDeviceFlow(t *testing.T) {
 		return
 	}
 
-	client := msauth.NewHTTPClient(http.DefaultClient, nil)
-
-	// User can either use first party client (as shwon below) to authorize against "common" authority,
-	// or use a self registerd client to authorize against "<tenant>" authority.
 	clientID := "6731de76-14a6-49ae-97bc-6eba6914391e" // msgraph tutorial client id
-	authority, err := msauth.NewAuthority("https://login.microsoftonline.com/common", client.Client)
+	c := msauth.NewClientViaDeviceFlow("common", clientID, nil, "user.read", "offline_access")
+	ts, err := c.ObtainTokenSource(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
-	c := msauth.NewClientViaDeviceFlow(client, msauth.NewScope("user.read", "offline_access"), clientID, nil)
-	_, err = c.ObtainToken(context.Background(), authority)
+	_, err = ts.Token()
 	if err != nil {
 		t.Fatal(err)
 	}

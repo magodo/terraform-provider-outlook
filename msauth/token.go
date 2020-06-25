@@ -3,16 +3,26 @@ package msauth
 import (
 	"fmt"
 	"time"
+
+	"golang.org/x/oauth2"
 )
 
 // Token is defined at: https://tools.ietf.org/html/rfc6749#section-5.1
 type Token struct {
-	AccessToken  string    `json:"access_token"`
-	TokenType    string    `json:"token_type"`
-	ExpiresIn    int       `json:"expires_in"` // "expires_in" is defined as RECOMMENDED, while in MSAUTH it is always returned, hence defined as `int`
-	expiresOn    time.Time // The time when the access token is expired
-	RefreshToken *string   `json:"refresh_token"`
-	Scope        *string   `json:"scope"`
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"` // "expires_in" is defined as RECOMMENDED, while in MSAUTH it is always returned, hence defined as `int`
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (t Token) ToOauth2Token() *oauth2.Token {
+	expiry := time.Now().Add(time.Second * time.Duration(t.ExpiresIn))
+	return &oauth2.Token{
+		AccessToken:  t.AccessToken,
+		TokenType:    t.TokenType,
+		RefreshToken: t.RefreshToken,
+		Expiry:       expiry,
+	}
 }
 
 const (
@@ -46,13 +56,4 @@ func (e TokenError) String() string {
 		out = fmt.Sprintf("%s (uri: %s)", out, *e.ErrorURI)
 	}
 	return out
-}
-
-type DeviceAuthorization struct {
-	DeviceCode              string  `json:"device_code"`
-	UserCode                string  `json:"user_code"`
-	VerificationURI         string  `json:"verification_uri"`
-	VerificationURIComplete *string `json:"verification_uri_complete"`
-	ExpiresIn               int     `json:"expires_in"`
-	Interval                *int    `json:"interval"`
 }

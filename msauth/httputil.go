@@ -12,23 +12,21 @@ import (
 )
 
 type HTTPClient struct {
-	DefaultHeader http.Header
 	*retryablehttp.Client
 }
 
-func (c *HTTPClient) NewRequestWithContext(ctx context.Context, method, url string, body io.Reader) (*retryablehttp.Request, error) {
+func NewRequestWithContext(ctx context.Context, method, url string, body io.Reader) (*retryablehttp.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return nil, err
 	}
-	req.Header = c.DefaultHeader.Clone()
 	return retryablehttp.FromRequest(req)
 }
 
 // Do will send a general HTTP request and unmarshal the response into `outputPtr`.
 // It returns error if the response status code is not 200.
-func (c *HTTPClient) Do(req *retryablehttp.Request, outputPtr interface{}) error {
-	resp, err := c.Client.Do(req)
+func (client *HTTPClient) Do(req *retryablehttp.Request, outputPtr interface{}) error {
+	resp, err := client.Client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -56,8 +54,8 @@ func (c *HTTPClient) Do(req *retryablehttp.Request, outputPtr interface{}) error
 // On 400, `TokenError` will be returned with the unmarshalled error response.
 // (as defined in: https://tools.ietf.org/html/rfc6749#section-5.2, with some possible extension,
 //  e.g. https://tools.ietf.org/html/rfc8628#section-3.5)
-func (c *HTTPClient) DoToken(req *retryablehttp.Request) (*Token, *TokenError, error) {
-	resp, err := c.Client.Do(req)
+func (client *HTTPClient) DoToken(req *retryablehttp.Request) (*Token, *TokenError, error) {
+	resp, err := client.Client.Do(req)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -88,16 +86,6 @@ func (c *HTTPClient) DoToken(req *retryablehttp.Request) (*Token, *TokenError, e
 	return okbody, errbody, nil
 }
 
-func NewHTTPClient(client *http.Client, defaultHeader http.Header) *HTTPClient {
-	header := make(map[string][]string)
-	if defaultHeader != nil {
-		header = defaultHeader
-	}
-	retryClient := retryablehttp.NewClient()
-	retryClient.HTTPClient = client
-	retryClient.Logger = nil
-	return &HTTPClient{
-		DefaultHeader: header,
-		Client:        retryClient,
-	}
+func NewHTTPClient(client *retryablehttp.Client) *HTTPClient {
+	return &HTTPClient{client}
 }

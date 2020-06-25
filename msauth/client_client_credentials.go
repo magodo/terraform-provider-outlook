@@ -2,69 +2,41 @@ package msauth
 
 import (
 	"context"
-	"net/http"
-	"net/url"
-	"strings"
 
-	"github.com/pkg/errors"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
+	"golang.org/x/oauth2/microsoft"
 )
 
 type clientViaClientCredential struct {
-	client           *HTTPClient
-	clientID         string
-	clientCredential string
-	scope            scope
+	config *clientcredentials.Config
 }
 
-func (c *clientViaClientCredential) ObtainToken(ctx context.Context, authority *authority) (*Token, error) {
-
-	// TODO: support client assertion: See https://tools.ietf.org/html/rfc7521#section-4.2
-
-	if c.scope.IsEmpty() {
-		return nil, errors.New(`"scope" is not specified`)
-	}
-	body := url.Values{}
-	body.Set("grant_type", "client_credentials")
-	body.Set("client_id", c.clientID)
-	body.Set("scope", c.scope.String())
-	req, err := c.client.NewRequestWithContext(ctx, http.MethodPost, authority.TokenEndpoint, strings.NewReader(body.Encode()))
+func (c *clientViaClientCredential) ObtainTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
+	var err error
+	ts := c.config.TokenSource(ctx)
+	_, err = ts.Token()
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Accept", "application/x-www-form-urlencoded")
-	// Use HTTP Basic authentication scheme to authenticate client.
-	// See: https://tools.ietf.org/html/rfc6749#section-2.3.1
-	req.SetBasicAuth(c.clientID, c.clientCredential)
-
-	token, tokenerr, err := c.client.DoToken(req)
-	if err != nil {
-		return nil, err
-	}
-	if tokenerr != nil {
-		return nil, errors.New(tokenerr.String())
-	}
-	return token, nil
+	return ts, nil
 }
 
-// RefreshToken of client credential will simply invoke another access token authorization.
-func (c *clientViaClientCredential) RefreshToken(ctx context.Context, authority *authority, _ *string) (*Token, error) {
-	return c.ObtainToken(ctx, authority)
+func (c *clientViaClientCredential) ID() string {
+	return oauthClientID(c.config.ClientID, c.config.TokenURL, c.config.Scopes)
 }
 
-func (c *clientViaClientCredential) GetClientID() string {
-	return c.clientID
-}
-
-func (c *clientViaClientCredential) GetClientScope() scope {
-	return c.scope
-}
-
-func NewClientViaClientCredential(client *HTTPClient, scope scope, clientID, clientCredential string) Client {
+// NOTE: The value passed for the scope parameter in this request should be the resource identifier (Application ID URI)
+//       of the resource you want, affixed with the .default suffix
+// 		(See https://docs.microsoft.com/en-us/graph/auth-v2-service#token-request for more details)
+func NewClientViaClientCredential(tenantID string, clientID, clientCredential string, scopes ...string) Client {
 	return &clientViaClientCredential{
-		client:           client,
-		clientID:         clientID,
-		clientCredential: clientCredential,
-		scope:            scope,
+		config: &clientcredentials.Config{
+			ClientID:     clientID,
+			ClientSecret: clientCredential,
+			TokenURL:     microsoft.AzureADEndpoint(tenantID).TokenURL,
+			Scopes:       scopes,
+			AuthStyle:    oauth2.AuthStyleInParams,
+		},
 	}
 }

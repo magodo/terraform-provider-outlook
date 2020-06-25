@@ -2,17 +2,16 @@ package provider
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/magodo/terraform-provider-outlook/outlook/provider/client"
 )
 
 func Provider() *schema.Provider {
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"token": {
-				Description: "MS Graph access token with proper scope defined. Can be specified with the `OUTLOOK_TOKEN`",
+			"token_cache": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_TOKEN", ""),
+				Description: "Token cache path used to read the oauth2 token",
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_TOKEN_CACHE_PATH", ""),
 			},
 		},
 
@@ -29,8 +28,6 @@ func Provider() *schema.Provider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-		token := d.Get("token").(string)
-		c := client.BuildClient(token)
-		return c, nil
+		return nil, nil
 	}
 }

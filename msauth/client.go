@@ -1,14 +1,23 @@
 package msauth
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"sort"
+	"strings"
+
+	"golang.org/x/oauth2"
+)
+
+func oauthClientID(clientID, tokenURL string, scopes []string) string {
+	sort.Strings(scopes)
+	return fmt.Sprintf("%s @ %s (%s)", clientID, tokenURL, strings.Join(scopes, " "))
+}
 
 type Client interface {
-	// ObtainToken obtains JWT token in different kinds of grant types, depends on the type implementing the interface.
-	ObtainToken(ctx context.Context, authority *authority) (*Token, error)
+	// ObtainTokenSource obtains token source in different kinds of grant types
+	ObtainTokenSource(ctx context.Context) (oauth2.TokenSource, error)
 
-	// RefreshToken refresh a access token via refresh token
-	RefreshToken(ctx context.Context, authority *authority, refreshToken *string) (*Token, error)
-
-	GetClientID() string
-	GetClientScope() scope
+	// ID represents a unique ID of the client from oauth's POV
+	ID() string
 }
