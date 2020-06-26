@@ -8,11 +8,11 @@ import (
 	"golang.org/x/oauth2/microsoft"
 )
 
-type clientViaClientCredential struct {
+type privateClientViaClientCredential struct {
 	config *clientcredentials.Config
 }
 
-func (c *clientViaClientCredential) ObtainTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
+func (c *privateClientViaClientCredential) ObtainTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
 	var err error
 	ts := c.config.TokenSource(ctx)
 	_, err = ts.Token()
@@ -22,15 +22,11 @@ func (c *clientViaClientCredential) ObtainTokenSource(ctx context.Context) (oaut
 	return ts, nil
 }
 
-func (c *clientViaClientCredential) ID() string {
-	return oauthClientID(c.config.ClientID, c.config.TokenURL, c.config.Scopes)
-}
-
 // NOTE: The value passed for the scope parameter in this request should be the resource identifier (Application ID URI)
 //       of the resource you want, affixed with the .default suffix
 // 		(See https://docs.microsoft.com/en-us/graph/auth-v2-service#token-request for more details)
-func NewClientViaClientCredential(tenantID string, clientID, clientCredential string, scopes ...string) Client {
-	return &clientViaClientCredential{
+func NewPrivateClientViaClientCredential(tenantID string, clientID, clientCredential string, scopes ...string) PrivateClient {
+	return &privateClientViaClientCredential{
 		config: &clientcredentials.Config{
 			ClientID:     clientID,
 			ClientSecret: clientCredential,

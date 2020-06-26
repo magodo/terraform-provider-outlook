@@ -24,7 +24,7 @@ type DeviceAuthorization struct {
 
 type DeviceAuthorizationUserInteractionFunc func(auth DeviceAuthorization)
 
-type clientViaDeviceFlow struct {
+type publicClientDeviceFlow struct {
 	client *HTTPClient
 	config *oauth2.Config
 	f      DeviceAuthorizationUserInteractionFunc
@@ -35,11 +35,19 @@ func defaultDeviceAuthorizationUserInteractionFunc(auth DeviceAuthorization) {
 		auth.VerificationURI, auth.UserCode, auth.ExpiresIn)
 }
 
-func (c *clientViaDeviceFlow) ID() string {
+func (c *publicClientDeviceFlow) ID() string {
 	return oauthClientID(c.config.ClientID, c.config.Endpoint.TokenURL, c.config.Scopes)
 }
 
-func (c *clientViaDeviceFlow) ObtainTokenSource(ctx context.Context) (oauth2.TokenSource, error) {
+func (c *publicClientDeviceFlow) ObtainTokenSource(ctx context.Context, t *oauth2.Token) (oauth2.TokenSource, error) {
+	ts := c.config.TokenSource(ctx, t)
+	if _, err := ts.Token(); err != nil {
+		return nil, err
+	}
+	return ts, nil
+}
+
+func (c *publicClientDeviceFlow) ObtainToken(ctx context.Context) (*oauth2.Token, error) {
 	// Device authorization
 	body := url.Values{
 		"client_id": {c.config.ClientID},
@@ -96,23 +104,19 @@ func (c *clientViaDeviceFlow) ObtainTokenSource(ctx context.Context) (oauth2.Tok
 			//case TokenErrorAccessDenied:
 			//	return nil, errors.New(tokenerr.String())
 			case TokenErrorExpiredToken:
-				return c.ObtainTokenSource(ctx)
+				return c.ObtainToken(ctx)
 			default:
 				return nil, fmt.Errorf("access token response: %s", tokenerr.String())
 			}
 		}
-		ts := c.config.TokenSource(ctx, token.ToOauth2Token())
-		if _, err := ts.Token(); err != nil {
-			return nil, err
-		}
-		return ts, nil
+		return token.ToOauth2Token(), nil
 	}
 }
 
-func NewClientViaDeviceFlow(tenantID string, clientID string, f DeviceAuthorizationUserInteractionFunc, scopes ...string) Client {
+func NewPublicClientViaDeviceFlow(tenantID string, clientID string, f DeviceAuthorizationUserInteractionFunc, scopes ...string) PublicClient {
 	client := retryablehttp.NewClient()
 	client.Logger = nil
-	return &clientViaDeviceFlow{
+	return &publicClientDeviceFlow{
 		client: NewHTTPClient(client),
 		config: &oauth2.Config{
 			ClientID: clientID,
