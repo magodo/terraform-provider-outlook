@@ -1,12 +1,12 @@
 package services
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
 	msgraph "github.com/yaegashi/msgraph.go/beta"
@@ -14,7 +14,7 @@ import (
 
 func DataSourceMailFolder() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMailRead,
+		ReadContext: dataSourceMailRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -29,26 +29,24 @@ func DataSourceMailFolder() *schema.Resource {
 	}
 }
 
-func dataSourceMailRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceMailRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
-	ctx, cancel := context.WithTimeout(context.Background(), d.Timeout(schema.TimeoutRead))
-	defer cancel()
 
 	name := d.Get("name").(string)
 	resp, err := client.ID(name).Request().Get(ctx)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err != nil {
 		if errRes, ok := err.(*msgraph.ErrorResponse); ok {
 			if errRes.StatusCode() == http.StatusNotFound {
-				return fmt.Errorf("Mail Folder %q not found", name)
+				return diag.Errorf("Mail Folder %q not found", name)
 			}
 		}
-		return fmt.Errorf("retrieving Mail Folder %q: %w", name, err)
+		return diag.Errorf("retrieving Mail Folder %q: %w", name, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Mail Folder %q ID", name)
+		return diag.Errorf("empty or nil ID returned for Mail Folder %q ID", name)
 	}
 
 	d.SetId(*resp.ID)

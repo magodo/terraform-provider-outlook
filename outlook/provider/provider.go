@@ -30,7 +30,9 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"outlook_mail_folder": services.DataSourceMailFolder(),
 		},
-		ResourcesMap: map[string]*schema.Resource{},
+		ResourcesMap: map[string]*schema.Resource{
+			"outlook_mail_folder": services.ResourceMailFolder(),
+		},
 	}
 
 	p.ConfigureFunc = providerConfigure(p)
