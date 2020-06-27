@@ -15,10 +15,10 @@ import (
 
 func ResourceMailFolder() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceMailCreate,
-		ReadContext:   resourceMailRead,
-		UpdateContext: resourceMailUpdate,
-		DeleteContext: resourceMailDelete,
+		CreateContext: resourceMailFolderCreate,
+		ReadContext:   resourceMailFolderRead,
+		UpdateContext: resourceMailFolderUpdate,
+		DeleteContext: resourceMailFolderDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -40,7 +40,7 @@ func ResourceMailFolder() *schema.Resource {
 	}
 }
 
-func resourceMailCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMailFolderCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
 	name := d.Get("name").(string)
 
@@ -73,10 +73,10 @@ func resourceMailCreate(ctx context.Context, d *schema.ResourceData, meta interf
 	}
 	d.SetId(*resp.ID)
 
-	return resourceMailRead(ctx, d, meta)
+	return resourceMailFolderRead(ctx, d, meta)
 }
 
-func resourceMailRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMailFolderRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
 
 	resp, err := client.ID(d.Id()).Request().Get(ctx)
@@ -93,7 +93,7 @@ func resourceMailRead(ctx context.Context, d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceMailUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMailFolderUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders.ID(d.Id())
 
 	var param msgraph.MailFolder
@@ -104,10 +104,10 @@ func resourceMailUpdate(ctx context.Context, d *schema.ResourceData, meta interf
 		return diag.FromErr(err)
 	}
 
-	return resourceMailRead(ctx, d, meta)
+	return resourceMailFolderRead(ctx, d, meta)
 }
 
-func resourceMailDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
 	if err := client.ID(d.Id()).Request().Delete(ctx); err != nil {
 		return diag.FromErr(err)
