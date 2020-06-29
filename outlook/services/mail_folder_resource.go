@@ -59,9 +59,6 @@ func resourceMailFolderCreate(ctx context.Context, d *schema.ResourceData, meta 
 	param := &msgraph.MailFolder{
 		DisplayName: utils.String(name),
 	}
-	if pid, ok := d.GetOk("parent_folder_id"); ok {
-		param.ParentFolderID = utils.String(pid.(string))
-	}
 
 	resp, err := client.Request().Add(ctx, param)
 	if err != nil {
