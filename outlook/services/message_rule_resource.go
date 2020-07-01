@@ -2,7 +2,12 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"time"
+
+	"github.com/magodo/terraform-provider-outlook/outlook/clients"
+	"github.com/magodo/terraform-provider-outlook/outlook/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -11,7 +16,7 @@ import (
 )
 
 func ResourceMessageRule() *schema.Resource {
-	conditionSchema := &schema.Schema{
+	predicateSchema := &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
 		MinItems: 1,
@@ -231,7 +236,7 @@ func ResourceMessageRule() *schema.Resource {
 		DeleteContext: resourceMessageRuleDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -256,8 +261,8 @@ func ResourceMessageRule() *schema.Resource {
 				Optional: true,
 				Default:  true,
 			},
-			"condition": conditionSchema,
-			"exception": conditionSchema,
+			"condition": predicateSchema,
+			"exception": predicateSchema,
 			"action": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -338,13 +343,122 @@ func ResourceMessageRule() *schema.Resource {
 }
 
 func resourceMessageRuleCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*clients.Client).MessageRules
+	name := d.Get("name").(string)
+
+	if d.IsNewResource() {
+		req := client.Request()
+		req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
+		objs, err := req.Get(ctx)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if len(objs) != 0 {
+			return utils.ImportAsExistsError("outlook_message_rule", *(objs[0].ID))
+		}
+	}
+
+	param := &msgraph.MessageRule{
+		DisplayName: utils.String(name),
+		Sequence:    utils.Int(d.Get("sequence").(int)),
+		IsEnabled:   utils.Bool(d.Get("enabled").(bool)),
+		Conditions:  expandMessageRulePredicate(d.Get("condition").([]interface{})),
+		Exceptions:  expandMessageRulePredicate(d.Get("exception").([]interface{})),
+		Actions:     expandMessageRuleAction(d.Get("action").([]interface{})),
+	}
+
+	resp, err := client.Request().Add(ctx, param)
+	if err != nil {
+		return diag.Errorf("creating Message Rule %q: %w", name, err)
+	}
+
+	if resp.ID == nil {
+		return diag.Errorf("nil ID for Message Rule %q", name)
+	}
+	d.SetId(*resp.ID)
+
+	return resourceMessageRuleRead(ctx, d, meta)
 }
 
 func resourceMessageRuleRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*clients.Client).MessageRules
+
+	resp, err := client.ID(d.Id()).Request().Get(ctx)
+	if err != nil {
+		if utils.ResponseErrorWasNotFound(err) {
+			log.Printf("[WARN] Message Rule %q doesn't exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return diag.FromErr(err)
+	}
+
+	d.Set("name", resp.DisplayName)
+	d.Set("sequence", resp.Sequence)
+	d.Set("enabled", resp.IsEnabled)
+	if err := d.Set("condition", flattenMessageRulePredicate(resp.Conditions)); err != nil {
+		return diag.Errorf(`setting "condition": %w"`, err)
+	}
+	if err := d.Set("exception", flattenMessageRulePredicate(resp.Exceptions	)); err != nil {
+		return diag.Errorf(`setting "exception": %w"`, err)
+	}
+	if err := d.Set("action", flattenMessageRuleAction(resp.Actions	)); err != nil {
+		return diag.Errorf(`setting "action": %w"`, err)
+	}
+
+	return nil
 }
+
 
 func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*clients.Client).MessageRules.ID(d.Id())
+
+	var param msgraph.MessageRule
+
+	if d.HasChange("sequence") {
+		param.Sequence = utils.Int(d.Get("sequence").(int))
+	}
+	if d.HasChange("enabled") {
+		param.IsEnabled	 = utils.Bool(d.Get("enabled").(bool))
+	}
+	if d.HasChange("condition") {
+		param.Conditions	 = expandMessageRulePredicate(d.Get("condition").([]interface{})),
+	}
+	if d.HasChange("exception") {
+		param.Exceptions	 = expandMessageRulePredicate(d.Get("exception").([]interface{})),
+	}
+	if d.HasChange("action") {
+		param.Actions	 = expandMessageRuleAction(d.Get("action").([]interface{})),
+	}
+
+
+	if err := client.Request().Update(ctx, &param); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceMessageRuleRead(ctx, d, meta)
 }
 
+
+
 func resourceMessageRuleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*clients.Client).MessageRules
+	if err := client.ID(d.Id()).Request().Delete(ctx); err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }
+
+func expandMessageRulePredicate(input []interface{}) *msgraph.MessageRulePredicates {
+
+}
+
+func expandMessageRuleAction(input []interface{}) *msgraph.MessageRuleActions {
+}
+
+func flattenMessageRulePredicate(input *msgraph.MessageRulePredicates) interface{} {
+}
+
+func flattenMessageRuleAction(input *msgraph.MessageRuleActions) interface{} {
+}
+
