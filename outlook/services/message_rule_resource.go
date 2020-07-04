@@ -280,6 +280,7 @@ func ResourceMessageRule() *schema.Resource {
 						"copy_to_folder": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 						"delete": {
 							Type:     schema.TypeBool,
@@ -399,16 +400,15 @@ func resourceMessageRuleRead(ctx context.Context, d *schema.ResourceData, meta i
 	if err := d.Set("condition", flattenMessageRulePredicate(resp.Conditions)); err != nil {
 		return diag.Errorf(`setting "condition": %w"`, err)
 	}
-	if err := d.Set("exception", flattenMessageRulePredicate(resp.Exceptions	)); err != nil {
+	if err := d.Set("exception", flattenMessageRulePredicate(resp.Exceptions)); err != nil {
 		return diag.Errorf(`setting "exception": %w"`, err)
 	}
-	if err := d.Set("action", flattenMessageRuleAction(resp.Actions	)); err != nil {
+	if err := d.Set("action", flattenMessageRuleAction(resp.Actions)); err != nil {
 		return diag.Errorf(`setting "action": %w"`, err)
 	}
 
 	return nil
 }
-
 
 func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MessageRules.ID(d.Id())
@@ -419,18 +419,17 @@ func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta
 		param.Sequence = utils.Int(d.Get("sequence").(int))
 	}
 	if d.HasChange("enabled") {
-		param.IsEnabled	 = utils.Bool(d.Get("enabled").(bool))
+		param.IsEnabled = utils.Bool(d.Get("enabled").(bool))
 	}
 	if d.HasChange("condition") {
-		param.Conditions	 = expandMessageRulePredicate(d.Get("condition").([]interface{})),
+		param.Conditions = expandMessageRulePredicate(d.Get("condition").([]interface{}))
 	}
 	if d.HasChange("exception") {
-		param.Exceptions	 = expandMessageRulePredicate(d.Get("exception").([]interface{})),
+		param.Exceptions = expandMessageRulePredicate(d.Get("exception").([]interface{}))
 	}
 	if d.HasChange("action") {
-		param.Actions	 = expandMessageRuleAction(d.Get("action").([]interface{})),
+		param.Actions = expandMessageRuleAction(d.Get("action").([]interface{}))
 	}
-
 
 	if err := client.Request().Update(ctx, &param); err != nil {
 		return diag.FromErr(err)
@@ -438,8 +437,6 @@ func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta
 
 	return resourceMessageRuleRead(ctx, d, meta)
 }
-
-
 
 func resourceMessageRuleDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MessageRules
@@ -450,15 +447,211 @@ func resourceMessageRuleDelete(ctx context.Context, d *schema.ResourceData, meta
 }
 
 func expandMessageRulePredicate(input []interface{}) *msgraph.MessageRulePredicates {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
 
+	raw := input[0].(map[string]interface{})
+	output := &msgraph.MessageRulePredicates{
+		BodyContains:          *utils.ExpandSlice(raw["body_contains"].(*schema.Set).List(), "", nil).(*[]string),
+		BodyOrSubjectContains: *utils.ExpandSlice(raw["body_or_subject_contains"].(*schema.Set).List(), "", nil).(*[]string),
+		//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
+		//Categories: *utils.ExpandSlice(raw["categories"].(*schema.Set).List(), "",nil).(*[]string),
+		FromAddresses: *utils.ExpandSlice(raw["from_addresses"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
+			return msgraph.Recipient{
+				EmailAddress: &msgraph.EmailAddress{
+					Address: utils.String(i.(string)),
+				},
+			}
+		}).(*[]msgraph.Recipient),
+		HasAttachments:         utils.Bool(raw["has_attachments"].(bool)),
+		HeaderContains:         *utils.ExpandSlice(raw["header_contains"].(*schema.Set).List(), "", nil).(*[]string),
+		Importance:             utils.ToPtr(msgraph.Importance(raw["importance"].(string))).(*msgraph.Importance),
+		IsApprovalRequest:      utils.Bool(raw["is_approval_requests"].(bool)),
+		IsAutomaticForward:     utils.Bool(raw["is_automatic_forward"].(bool)),
+		IsAutomaticReply:       utils.Bool(raw["is_automatic_reply"].(bool)),
+		IsEncrypted:            utils.Bool(raw["is_encrypted"].(bool)),
+		IsMeetingRequest:       utils.Bool(raw["is_meeting_request"].(bool)),
+		IsMeetingResponse:      utils.Bool(raw["is_meeting_response"].(bool)),
+		IsNonDeliveryReport:    utils.Bool(raw["is_non_delivery_report"].(bool)),
+		IsPermissionControlled: utils.Bool(raw["is_permission_controlled"].(bool)),
+		IsReadReceipt:          utils.Bool(raw["is_read_receipt"].(bool)),
+		IsSigned:               utils.Bool(raw["is_signed"].(bool)),
+		IsVoicemail:            utils.Bool(raw["is_voicemail"].(bool)),
+		MessageActionFlag:      utils.ToPtr(msgraph.MessageActionFlag(raw["message_action_flag"].(string))).(*msgraph.MessageActionFlag),
+		NotSentToMe:            utils.Bool(raw["not_sent_to_me"].(bool)),
+		RecipientContains:      *utils.ExpandSlice(raw["recipient_contains"].(*schema.Set).List(), "", nil).(*[]string),
+		SenderContains:         *utils.ExpandSlice(raw["sender_contains"].(*schema.Set).List(), "", nil).(*[]string),
+		Sensitivity:            utils.ToPtr(msgraph.Sensitivity(raw["sensitivity"].(string))).(*msgraph.Sensitivity),
+		SentCcMe:               utils.Bool(raw["sent_cc_me"].(bool)),
+		SentOnlyToMe:           utils.Bool(raw["sent_only_to_me"].(bool)),
+		SentToAddresses: *utils.ExpandSlice(raw["sent_to_addresses"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
+			return msgraph.Recipient{
+				EmailAddress: &msgraph.EmailAddress{
+					Address: utils.String(i.(string)),
+				},
+			}
+		}).(*[]msgraph.Recipient),
+		SentToMe:        utils.Bool(raw["sent_to_me"].(bool)),
+		SentToOrCcMe:    utils.Bool(raw["sent_to_or_cc_me"].(bool)),
+		SubjectContains: *utils.ExpandSlice(raw["subject_contains"].(*schema.Set).List(), "", nil).(*[]string),
+		WithinSizeRange: expandMessageSizeRange(raw["within_size_range"].([]interface{})),
+	}
+
+	return output
 }
 
 func expandMessageRuleAction(input []interface{}) *msgraph.MessageRuleActions {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	output := &msgraph.MessageRuleActions{
+		//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
+		//AssignCategories: 	*utils.ExpandSlice(raw["assign_categories"].(*schema.Set).List(), "",nil).(*[]string),
+		CopyToFolder: utils.String(raw["copy_to_folder"].(string)),
+		Delete:       utils.Bool(raw["delete"].(bool)),
+		ForwardAsAttachmentTo: *utils.ExpandSlice(raw["forward_as_attachment_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
+			return msgraph.Recipient{
+				EmailAddress: &msgraph.EmailAddress{
+					Address: utils.String(i.(string)),
+				},
+			}
+		}).(*[]msgraph.Recipient),
+		ForwardTo: *utils.ExpandSlice(raw["forward_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
+			return msgraph.Recipient{
+				EmailAddress: &msgraph.EmailAddress{
+					Address: utils.String(i.(string)),
+				},
+			}
+		}).(*[]msgraph.Recipient),
+		MarkAsRead:      utils.Bool(raw["mark_as_read"].(bool)),
+		MarkImportance:  utils.ToPtr(msgraph.Importance(raw["mark_importance"].(string))).(*msgraph.Importance),
+		MoveToFolder:    utils.String(raw["move_to_folder"].(string)),
+		PermanentDelete: utils.Bool(raw["permanent_delete"].(bool)),
+		RedirectTo: *utils.ExpandSlice(raw["forward_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
+			return msgraph.Recipient{
+				EmailAddress: &msgraph.EmailAddress{
+					Address: utils.String(i.(string)),
+				},
+			}
+		}).(*[]msgraph.Recipient),
+		StopProcessingRules: utils.Bool(raw["stop_processing_rules"].(bool)),
+	}
+
+	return output
 }
 
-func flattenMessageRulePredicate(input *msgraph.MessageRulePredicates) interface{} {
+func expandMessageSizeRange(input []interface{}) *msgraph.SizeRange {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	output := &msgraph.SizeRange{
+		MaximumSize: utils.Int(raw["max_size"].(int)),
+		MinimumSize: utils.Int(raw["min_size"].(int)),
+	}
+	return output
+}
+
+func flattenMessageRulePredicate(input *msgraph.MessageRulePredicates) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"body_contains":            utils.FlattenSlicePtr(utils.ToPtr(input.BodyContains).(*[]string), nil),
+			"body_or_subject_contains": utils.FlattenSlicePtr(utils.ToPtr(input.BodyOrSubjectContains).(*[]string), nil),
+			//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
+			//"categories": utils.FlattenSlicePtr(utils.ToPtr(input.Categories).(*[]string), nil),
+			"from_addresses":           utils.FlattenSlicePtr(utils.ToPtr(input.FromAddresses).(*[]string), nil),
+			"has_attachments":          utils.SafeDeref(input.HasAttachments),
+			"header_contains":          utils.FlattenSlicePtr(utils.ToPtr(input.HeaderContains).(*[]string), nil),
+			"importance":               string(utils.SafeDeref(input.Importance).(msgraph.Importance)),
+			"is_approval_request":      utils.SafeDeref(input.IsApprovalRequest),
+			"is_automatic_forward":     utils.SafeDeref(input.IsAutomaticForward),
+			"is_automatic_reply":       utils.SafeDeref(input.IsAutomaticReply),
+			"is_encrypted":             utils.SafeDeref(input.IsEncrypted),
+			"is_meeting_request":       utils.SafeDeref(input.IsMeetingRequest),
+			"is_meeting_response":      utils.SafeDeref(input.IsMeetingResponse),
+			"is_non_delivery_report":   utils.SafeDeref(input.IsNonDeliveryReport),
+			"is_permission_controlled": utils.SafeDeref(input.IsPermissionControlled),
+			"is_read_receipt":          utils.SafeDeref(input.IsReadReceipt),
+			"is_signed":                utils.SafeDeref(input.IsSigned),
+			"is_voicemail":             utils.SafeDeref(input.IsVoicemail),
+			"message_action_flag":      string(utils.SafeDeref(input.MessageActionFlag).(msgraph.MessageActionFlag)),
+			"not_sent_to_me":           utils.SafeDeref(input.NotSentToMe),
+			"recipient_contains":       utils.FlattenSlicePtr(utils.ToPtr(input.RecipientContains).(*[]string), nil),
+			"sender_contains":          utils.FlattenSlicePtr(utils.ToPtr(input.SenderContains).(*[]string), nil),
+			"sensitivity":              string(utils.SafeDeref(input.Sensitivity).(msgraph.Sensitivity)),
+			"sent_cc_me":               utils.SafeDeref(input.SentCcMe),
+			"sent_only_to_me":          utils.SafeDeref(input.SentOnlyToMe),
+			"sent_to_addresses": utils.FlattenSlicePtr(utils.ToPtr(input.SentToAddresses).(*[]msgraph.Recipient), func(i interface{}) interface{} {
+				addr := i.(msgraph.Recipient).EmailAddress
+				if addr == nil {
+					return ""
+				}
+				return utils.SafeDeref(addr.Address)
+			}),
+			"sent_to_me":        utils.SafeDeref(input.SentToMe),
+			"sent_to_or_cc_me":  utils.SafeDeref(input.SentToOrCcMe),
+			"subject_contains":  utils.FlattenSlicePtr(utils.ToPtr(input.SubjectContains).(*[]string), nil),
+			"within_size_range": flattenMessageSizeRange(input.WithinSizeRange),
+		},
+	}
 }
 
 func flattenMessageRuleAction(input *msgraph.MessageRuleActions) interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
+			//"assign_categories": utils.FlattenSlicePtr(utils.ToPtr(input.AssignCategories).(*[]string), nil),
+			"copy_to_folder":    utils.SafeDeref(input.CopyToFolder),
+			"delete":            utils.SafeDeref(input.Delete),
+			"forward_as_attachment_to": utils.FlattenSlicePtr(utils.ToPtr(input.ForwardAsAttachmentTo).(*[]msgraph.Recipient), func(i interface{}) interface{} {
+				addr := i.(msgraph.Recipient).EmailAddress
+				if addr == nil {
+					return ""
+				}
+				return utils.SafeDeref(addr.Address)
+			}),
+			"forward_to": utils.FlattenSlicePtr(utils.ToPtr(input.ForwardTo).(*[]msgraph.Recipient), func(i interface{}) interface{} {
+				addr := i.(msgraph.Recipient).EmailAddress
+				if addr == nil {
+					return ""
+				}
+				return utils.SafeDeref(addr.Address)
+			}),
+			"mark_as_read":     utils.SafeDeref(input.MarkAsRead),
+			"mark_importance":  string(utils.SafeDeref(input.MarkImportance).(msgraph.Importance)),
+			"move_to_folder":   utils.SafeDeref(input.MoveToFolder),
+			"permanent_delete": utils.SafeDeref(input.PermanentDelete),
+			"redirect_to": utils.FlattenSlicePtr(utils.ToPtr(input.RedirectTo).(*[]msgraph.Recipient), func(i interface{}) interface{} {
+				addr := i.(msgraph.Recipient).EmailAddress
+				if addr == nil {
+					return ""
+				}
+				return utils.SafeDeref(addr.Address)
+			}),
+			"stop_processing_rules": utils.SafeDeref(input.StopProcessingRules),
+		},
+	}
 }
 
+func flattenMessageSizeRange(input *msgraph.SizeRange) interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"max_size": utils.SafeDeref(input.MaximumSize),
+			"min_size": utils.SafeDeref(input.MinimumSize),
+		},
+	}
+}

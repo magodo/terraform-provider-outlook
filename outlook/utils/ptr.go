@@ -33,3 +33,20 @@ func ToPtr(obj interface{}) interface{} {
 	vp.Elem().Set(v)
 	return vp.Interface()
 }
+
+// SafeDeref returns the value pointed to by input pointer. If the pointer is null,
+// it returns the "zero" value of the value the input pointer pointed to.
+func SafeDeref(ptr interface{}) interface{} {
+	v := reflect.ValueOf(ptr)
+	if v.Kind() != reflect.Ptr {
+		panic("Invalid input: input is not a pointer")
+	}
+	if v.IsNil() {
+		uzero := underlyingZeroValue(v.Type())
+		// construct the right type
+		rv := reflect.New(v.Type().Elem())
+		rv.Elem().Set(uzero)
+		return rv.Elem().Interface()
+	}
+	return v.Elem().Interface()
+}
