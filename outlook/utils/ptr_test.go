@@ -8,6 +8,8 @@ import (
 )
 
 func TestToPtr(t *testing.T) {
+	type T1 int
+	var t1 T1
 	var slice []int
 	cases := []struct {
 		in  interface{}
@@ -29,9 +31,40 @@ func TestToPtr(t *testing.T) {
 			in:  slice,
 			out: &slice,
 		},
+		{
+			in:  T1(0),
+			out: &t1,
+		},
 	}
 	for idx, c := range cases {
 		out := ToPtr(c.in)
+		if !reflect.DeepEqual(out, c.out) {
+			t.Fatalf("%d failed\nexpected:\n%s\nactual:\n%s\n", idx, spew.Sdump(c.out), spew.Sdump(out))
+		}
+	}
+}
+
+func TestToPtrOrNil(t *testing.T) {
+	type T1 int
+	cases := []struct {
+		in  interface{}
+		out interface{}
+	}{
+		{
+			in:  1,
+			out: Int(1),
+		},
+		{
+			in:  0,
+			out: (*int)(nil),
+		},
+		{
+			in:  T1(0),
+			out: (*T1)(nil),
+		},
+	}
+	for idx, c := range cases {
+		out := ToPtrOrNil(c.in)
 		if !reflect.DeepEqual(out, c.out) {
 			t.Fatalf("%d failed\nexpected:\n%s\nactual:\n%s\n", idx, spew.Sdump(c.out), spew.Sdump(out))
 		}

@@ -20,7 +20,7 @@ func ResourceMessageRule() *schema.Resource {
 		Type:     schema.TypeList,
 		MaxItems: 1,
 		MinItems: 1,
-		Required: true,
+		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"body_contains": {
@@ -51,7 +51,6 @@ func ResourceMessageRule() *schema.Resource {
 				"has_attachments": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"header_contains": {
 					Type:     schema.TypeSet,
@@ -74,57 +73,46 @@ func ResourceMessageRule() *schema.Resource {
 				"is_approval_request": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_automatic_forward": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_automatic_reply": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_encrypted": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_meeting_request": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_meeting_response": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_non_delivery_report": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_permission_controlled": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_read_receipt": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_signed": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"is_voicemail": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"message_action_flag": {
 					Type:     schema.TypeString,
@@ -149,7 +137,6 @@ func ResourceMessageRule() *schema.Resource {
 				"not_sent_to_me": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"recipient_contains": {
 					Type:     schema.TypeSet,
@@ -179,12 +166,10 @@ func ResourceMessageRule() *schema.Resource {
 				"sent_cc_me": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"sent_only_to_me": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"sent_to_addresses": {
 					Type:     schema.TypeSet,
@@ -195,12 +180,10 @@ func ResourceMessageRule() *schema.Resource {
 				"sent_to_me": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"sent_to_or_cc_me": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Default:  false,
 				},
 				"subject_contains": {
 					Type:     schema.TypeSet,
@@ -229,6 +212,13 @@ func ResourceMessageRule() *schema.Resource {
 			},
 		},
 	}
+
+	// TODO
+	//     actionList := []string{"action.0.assign_categories", ""action.0.copy_to_folder", "action.0.delete", "action.0.forward_as_attachment_to", "action.0.forward_to",
+	//         "action.0.mark_as_read", "action.0.mark_importance", "action.0.move_to_folder", "action.0.permanent_delete", "action.0.redirect_to"}
+	actionList := []string{"action.0.copy_to_folder", "action.0.delete", "action.0.forward_as_attachment_to", "action.0.forward_to",
+		"action.0.mark_as_read", "action.0.mark_importance", "action.0.move_to_folder", "action.0.permanent_delete", "action.0.redirect_to"}
+
 	return &schema.Resource{
 		CreateContext: resourceMessageRuleCreate,
 		ReadContext:   resourceMessageRuleRead,
@@ -276,33 +266,36 @@ func ResourceMessageRule() *schema.Resource {
 						//                             MinItems: 1,
 						//                             Optional: true,
 						//                             Elem:     &schema.Schema{Type: schema.TypeString},
+						// 							   AtLeastOneOf: actionList,
 						//                         },
 						"copy_to_folder": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "",
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: actionList,
 						},
 						"delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: actionList,
 						},
 						"forward_as_attachment_to": {
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Type:         schema.TypeSet,
+							MinItems:     1,
+							Optional:     true,
+							Elem:         &schema.Schema{Type: schema.TypeString},
+							AtLeastOneOf: actionList,
 						},
 						"forward_to": {
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Type:         schema.TypeSet,
+							MinItems:     1,
+							Optional:     true,
+							Elem:         &schema.Schema{Type: schema.TypeString},
+							AtLeastOneOf: actionList,
 						},
 						"mark_as_read": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: actionList,
 						},
 						"mark_importance": {
 							Type:     schema.TypeString,
@@ -315,26 +308,28 @@ func ResourceMessageRule() *schema.Resource {
 								},
 								false,
 							),
+							AtLeastOneOf: actionList,
 						},
 						"move_to_folder": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							AtLeastOneOf: actionList,
 						},
 						"permanent_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:         schema.TypeBool,
+							Optional:     true,
+							AtLeastOneOf: actionList,
 						},
 						"redirect_to": {
-							Type:     schema.TypeSet,
-							MinItems: 1,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Type:         schema.TypeSet,
+							MinItems:     1,
+							Optional:     true,
+							Elem:         &schema.Schema{Type: schema.TypeString},
+							AtLeastOneOf: actionList,
 						},
 						"stop_processing_rules": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
@@ -464,27 +459,27 @@ func expandMessageRulePredicate(input []interface{}) *msgraph.MessageRulePredica
 				},
 			}
 		}).(*[]msgraph.Recipient),
-		HasAttachments:         utils.Bool(raw["has_attachments"].(bool)),
+		HasAttachments:         utils.ToPtrOrNil(raw["has_attachments"].(bool)).(*bool),
 		HeaderContains:         *utils.ExpandSlice(raw["header_contains"].(*schema.Set).List(), "", nil).(*[]string),
-		Importance:             utils.ToPtr(msgraph.Importance(raw["importance"].(string))).(*msgraph.Importance),
-		IsApprovalRequest:      utils.Bool(raw["is_approval_requests"].(bool)),
-		IsAutomaticForward:     utils.Bool(raw["is_automatic_forward"].(bool)),
-		IsAutomaticReply:       utils.Bool(raw["is_automatic_reply"].(bool)),
-		IsEncrypted:            utils.Bool(raw["is_encrypted"].(bool)),
-		IsMeetingRequest:       utils.Bool(raw["is_meeting_request"].(bool)),
-		IsMeetingResponse:      utils.Bool(raw["is_meeting_response"].(bool)),
-		IsNonDeliveryReport:    utils.Bool(raw["is_non_delivery_report"].(bool)),
-		IsPermissionControlled: utils.Bool(raw["is_permission_controlled"].(bool)),
-		IsReadReceipt:          utils.Bool(raw["is_read_receipt"].(bool)),
-		IsSigned:               utils.Bool(raw["is_signed"].(bool)),
-		IsVoicemail:            utils.Bool(raw["is_voicemail"].(bool)),
-		MessageActionFlag:      utils.ToPtr(msgraph.MessageActionFlag(raw["message_action_flag"].(string))).(*msgraph.MessageActionFlag),
-		NotSentToMe:            utils.Bool(raw["not_sent_to_me"].(bool)),
+		Importance:             utils.ToPtrOrNil(msgraph.Importance(raw["importance"].(string))).(*msgraph.Importance),
+		IsApprovalRequest:      utils.ToPtrOrNil(raw["is_approval_request"].(bool)).(*bool),
+		IsAutomaticForward:     utils.ToPtrOrNil(raw["is_automatic_forward"].(bool)).(*bool),
+		IsAutomaticReply:       utils.ToPtrOrNil(raw["is_automatic_reply"].(bool)).(*bool),
+		IsEncrypted:            utils.ToPtrOrNil(raw["is_encrypted"].(bool)).(*bool),
+		IsMeetingRequest:       utils.ToPtrOrNil(raw["is_meeting_request"].(bool)).(*bool),
+		IsMeetingResponse:      utils.ToPtrOrNil(raw["is_meeting_response"].(bool)).(*bool),
+		IsNonDeliveryReport:    utils.ToPtrOrNil(raw["is_non_delivery_report"].(bool)).(*bool),
+		IsPermissionControlled: utils.ToPtrOrNil(raw["is_permission_controlled"].(bool)).(*bool),
+		IsReadReceipt:          utils.ToPtrOrNil(raw["is_read_receipt"].(bool)).(*bool),
+		IsSigned:               utils.ToPtrOrNil(raw["is_signed"].(bool)).(*bool),
+		IsVoicemail:            utils.ToPtrOrNil(raw["is_voicemail"].(bool)).(*bool),
+		MessageActionFlag:      utils.ToPtrOrNil(msgraph.MessageActionFlag(raw["message_action_flag"].(string))).(*msgraph.MessageActionFlag),
+		NotSentToMe:            utils.ToPtrOrNil(raw["not_sent_to_me"].(bool)).(*bool),
 		RecipientContains:      *utils.ExpandSlice(raw["recipient_contains"].(*schema.Set).List(), "", nil).(*[]string),
 		SenderContains:         *utils.ExpandSlice(raw["sender_contains"].(*schema.Set).List(), "", nil).(*[]string),
-		Sensitivity:            utils.ToPtr(msgraph.Sensitivity(raw["sensitivity"].(string))).(*msgraph.Sensitivity),
-		SentCcMe:               utils.Bool(raw["sent_cc_me"].(bool)),
-		SentOnlyToMe:           utils.Bool(raw["sent_only_to_me"].(bool)),
+		Sensitivity:            utils.ToPtrOrNil(msgraph.Sensitivity(raw["sensitivity"].(string))).(*msgraph.Sensitivity),
+		SentCcMe:               utils.ToPtrOrNil(raw["sent_cc_me"].(bool)).(*bool),
+		SentOnlyToMe:           utils.ToPtrOrNil(raw["sent_only_to_me"].(bool)).(*bool),
 		SentToAddresses: *utils.ExpandSlice(raw["sent_to_addresses"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
 			return msgraph.Recipient{
 				EmailAddress: &msgraph.EmailAddress{
@@ -492,8 +487,8 @@ func expandMessageRulePredicate(input []interface{}) *msgraph.MessageRulePredica
 				},
 			}
 		}).(*[]msgraph.Recipient),
-		SentToMe:        utils.Bool(raw["sent_to_me"].(bool)),
-		SentToOrCcMe:    utils.Bool(raw["sent_to_or_cc_me"].(bool)),
+		SentToMe:        utils.ToPtrOrNil(raw["sent_to_me"].(bool)).(*bool),
+		SentToOrCcMe:    utils.ToPtrOrNil(raw["sent_to_or_cc_me"].(bool)).(*bool),
 		SubjectContains: *utils.ExpandSlice(raw["subject_contains"].(*schema.Set).List(), "", nil).(*[]string),
 		WithinSizeRange: expandMessageSizeRange(raw["within_size_range"].([]interface{})),
 	}
@@ -510,8 +505,8 @@ func expandMessageRuleAction(input []interface{}) *msgraph.MessageRuleActions {
 	output := &msgraph.MessageRuleActions{
 		//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
 		//AssignCategories: 	*utils.ExpandSlice(raw["assign_categories"].(*schema.Set).List(), "",nil).(*[]string),
-		CopyToFolder: utils.String(raw["copy_to_folder"].(string)),
-		Delete:       utils.Bool(raw["delete"].(bool)),
+		CopyToFolder: utils.ToPtrOrNil(raw["copy_to_folder"].(string)).(*string),
+		Delete:       utils.ToPtrOrNil(raw["delete"].(bool)).(*bool),
 		ForwardAsAttachmentTo: *utils.ExpandSlice(raw["forward_as_attachment_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
 			return msgraph.Recipient{
 				EmailAddress: &msgraph.EmailAddress{
@@ -526,10 +521,10 @@ func expandMessageRuleAction(input []interface{}) *msgraph.MessageRuleActions {
 				},
 			}
 		}).(*[]msgraph.Recipient),
-		MarkAsRead:      utils.Bool(raw["mark_as_read"].(bool)),
-		MarkImportance:  utils.ToPtr(msgraph.Importance(raw["mark_importance"].(string))).(*msgraph.Importance),
-		MoveToFolder:    utils.String(raw["move_to_folder"].(string)),
-		PermanentDelete: utils.Bool(raw["permanent_delete"].(bool)),
+		MarkAsRead:      utils.ToPtrOrNil(raw["mark_as_read"].(bool)).(*bool),
+		MarkImportance:  utils.ToPtrOrNil(msgraph.Importance(raw["mark_importance"].(string))).(*msgraph.Importance),
+		MoveToFolder:    utils.ToPtrOrNil(raw["move_to_folder"].(string)).(*string),
+		PermanentDelete: utils.ToPtrOrNil(raw["permanent_delete"].(bool)).(*bool),
 		RedirectTo: *utils.ExpandSlice(raw["forward_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
 			return msgraph.Recipient{
 				EmailAddress: &msgraph.EmailAddress{
@@ -537,7 +532,7 @@ func expandMessageRuleAction(input []interface{}) *msgraph.MessageRuleActions {
 				},
 			}
 		}).(*[]msgraph.Recipient),
-		StopProcessingRules: utils.Bool(raw["stop_processing_rules"].(bool)),
+		StopProcessingRules: utils.ToPtrOrNil(raw["stop_processing_rules"].(bool)).(*bool),
 	}
 
 	return output
@@ -567,7 +562,13 @@ func flattenMessageRulePredicate(input *msgraph.MessageRulePredicates) []interfa
 			"body_or_subject_contains": utils.FlattenSlicePtr(utils.ToPtr(input.BodyOrSubjectContains).(*[]string), nil),
 			//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
 			//"categories": utils.FlattenSlicePtr(utils.ToPtr(input.Categories).(*[]string), nil),
-			"from_addresses":           utils.FlattenSlicePtr(utils.ToPtr(input.FromAddresses).(*[]string), nil),
+			"from_addresses": utils.FlattenSlicePtr(utils.ToPtr(input.FromAddresses).(*[]msgraph.Recipient), func(i interface{}) interface{} {
+				addr := i.(msgraph.Recipient).EmailAddress
+				if addr == nil {
+					return ""
+				}
+				return utils.SafeDeref(addr.Address)
+			}),
 			"has_attachments":          utils.SafeDeref(input.HasAttachments),
 			"header_contains":          utils.FlattenSlicePtr(utils.ToPtr(input.HeaderContains).(*[]string), nil),
 			"importance":               string(utils.SafeDeref(input.Importance).(msgraph.Importance)),
@@ -612,8 +613,8 @@ func flattenMessageRuleAction(input *msgraph.MessageRuleActions) interface{} {
 		map[string]interface{}{
 			//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
 			//"assign_categories": utils.FlattenSlicePtr(utils.ToPtr(input.AssignCategories).(*[]string), nil),
-			"copy_to_folder":    utils.SafeDeref(input.CopyToFolder),
-			"delete":            utils.SafeDeref(input.Delete),
+			"copy_to_folder": utils.SafeDeref(input.CopyToFolder),
+			"delete":         utils.SafeDeref(input.Delete),
 			"forward_as_attachment_to": utils.FlattenSlicePtr(utils.ToPtr(input.ForwardAsAttachmentTo).(*[]msgraph.Recipient), func(i interface{}) interface{} {
 				addr := i.(msgraph.Recipient).EmailAddress
 				if addr == nil {
