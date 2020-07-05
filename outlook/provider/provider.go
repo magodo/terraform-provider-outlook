@@ -31,7 +31,8 @@ func Provider() *schema.Provider {
 			"outlook_mail_folder": services.DataSourceMailFolder(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"outlook_mail_folder": services.ResourceMailFolder(),
+			"outlook_mail_folder":  services.ResourceMailFolder(),
+			"outlook_message_rule": services.ResourceMessageRule(),
 		},
 	}
 
