@@ -365,11 +365,11 @@ func resourceMessageRuleCreate(ctx context.Context, d *schema.ResourceData, meta
 
 	resp, err := client.Request().Add(ctx, param)
 	if err != nil {
-		return diag.Errorf("creating Message Rule %q: %w", name, err)
+		return diag.Errorf("creating Message Rule %q: %+v", name, err)
 	}
 
 	if resp.ID == nil {
-		return diag.Errorf("nil ID for Message Rule %q", name)
+		return diag.Errorf("nil ID for Message Rule %+v", name)
 	}
 	d.SetId(*resp.ID)
 
@@ -393,13 +393,13 @@ func resourceMessageRuleRead(ctx context.Context, d *schema.ResourceData, meta i
 	d.Set("sequence", resp.Sequence)
 	d.Set("enabled", resp.IsEnabled)
 	if err := d.Set("condition", flattenMessageRulePredicate(resp.Conditions)); err != nil {
-		return diag.Errorf(`setting "condition": %w"`, err)
+		return diag.Errorf(`setting "condition": %+v"`, err)
 	}
 	if err := d.Set("exception", flattenMessageRulePredicate(resp.Exceptions)); err != nil {
-		return diag.Errorf(`setting "exception": %w"`, err)
+		return diag.Errorf(`setting "exception": %+v"`, err)
 	}
 	if err := d.Set("action", flattenMessageRuleAction(resp.Actions)); err != nil {
-		return diag.Errorf(`setting "action": %w"`, err)
+		return diag.Errorf(`setting "action": %+v"`, err)
 	}
 
 	return nil
@@ -418,9 +418,19 @@ func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta
 	}
 	if d.HasChange("condition") {
 		param.Conditions = expandMessageRulePredicate(d.Get("condition").([]interface{}))
+		// NOTE: When optional attribute is changed to be absent, we should force zero it in request body.
+		//       Otherwise, it will be omit in request body.
+		if param.Conditions == nil {
+			param.Conditions = 	&msgraph.MessageRulePredicates{}
+		}
 	}
 	if d.HasChange("exception") {
+		// NOTE: When optional attribute is changed to be absent, we should force zero it in request body.
+		//       Otherwise, it will be omit in request body.
 		param.Exceptions = expandMessageRulePredicate(d.Get("exception").([]interface{}))
+		if param.Exceptions == nil {
+			param.Exceptions = 	&msgraph.MessageRulePredicates{}
+		}
 	}
 	if d.HasChange("action") {
 		param.Actions = expandMessageRuleAction(d.Get("action").([]interface{}))

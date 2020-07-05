@@ -62,7 +62,7 @@ func resourceMailFolderCreate(ctx context.Context, d *schema.ResourceData, meta 
 
 	resp, err := client.Request().Add(ctx, param)
 	if err != nil {
-		return diag.Errorf("creating Mail Folder %q: %w", name, err)
+		return diag.Errorf("creating Mail Folder %q: %+v", name, err)
 	}
 
 	if resp.ID == nil {
