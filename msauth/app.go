@@ -43,7 +43,7 @@ func (app *App) ImportCache(path string) error {
 func (app *App) ExportCache(path string) error {
 	app.tokenCache.mutex.Lock()
 	defer app.tokenCache.mutex.Unlock()
-	b, err := json.Marshal(app.tokenCache.cache)
+	b, err := json.MarshalIndent(app.tokenCache.cache, "", "  ")
 	if err != nil {
 		return err
 	}
