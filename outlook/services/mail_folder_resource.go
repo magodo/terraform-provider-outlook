@@ -21,7 +21,7 @@ func ResourceMailFolder() *schema.Resource {
 		DeleteContext: resourceMailFolderDelete,
 
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Timeouts: &schema.ResourceTimeout{

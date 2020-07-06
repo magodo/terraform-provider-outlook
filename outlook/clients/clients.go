@@ -11,7 +11,7 @@ type Client struct {
 
 func NewClient(b msgraph.BaseRequestBuilder) *Client {
 	b.SetURL(b.URL() + "/me")
-	userClient := msgraph.UserRequestBuilder{b}
+	userClient := msgraph.UserRequestBuilder{BaseRequestBuilder: b}
 	return &Client{
 		MailFolders:  userClient.MailFolders(),
 		MessageRules: userClient.MailFolders().ID("inbox").MessageRules(),

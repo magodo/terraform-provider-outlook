@@ -1,8 +1,8 @@
 name: Provider
 on: [pull_request]
 jobs:
-  lintrest:
-    name: lintrest
+  lint:
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - name: Setup env
@@ -21,9 +21,9 @@ jobs:
       - name: Install dependencies
         run: make tools
 
-      - name: run lintrest
+      - name: run lint
         run: |
-          GOGC=5 make lintrest
+          GOGC=5 make lint
   tflint:
     name: tflint
     runs-on: ubuntu-latest

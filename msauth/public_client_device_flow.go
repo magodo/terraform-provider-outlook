@@ -22,7 +22,7 @@ type DeviceAuthorization struct {
 	Interval                *int    `json:"interval"`
 }
 
-type DeviceAuthorizationUserInteractionFunc func(auth DeviceAuthorization)
+type DeviceAuthorizationUserInteractionFunc func(auth DeviceAuthorization) error
 
 type publicClientDeviceFlow struct {
 	client *HTTPClient
@@ -30,9 +30,10 @@ type publicClientDeviceFlow struct {
 	f      DeviceAuthorizationUserInteractionFunc
 }
 
-func defaultDeviceAuthorizationUserInteractionFunc(auth DeviceAuthorization) {
+func defaultDeviceAuthorizationUserInteractionFunc(auth DeviceAuthorization) error {
 	fmt.Printf("To sign in, use a web browser to open the page %s and enter the code %s to authenticate (with in %d sec).\n",
 		auth.VerificationURI, auth.UserCode, auth.ExpiresIn)
+	return nil
 }
 
 func (c *publicClientDeviceFlow) ID() string {
@@ -69,7 +70,9 @@ func (c *publicClientDeviceFlow) ObtainToken(ctx context.Context) (*oauth2.Token
 	if f == nil {
 		f = defaultDeviceAuthorizationUserInteractionFunc
 	}
-	f(auth)
+	if err := f(auth); err != nil {
+		return nil, fmt.Errorf("invoking callback: %w", err)
+	}
 
 	// Polling:
 	body = url.Values{

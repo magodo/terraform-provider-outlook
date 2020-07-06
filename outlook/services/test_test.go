@@ -1,9 +1,10 @@
 package services_test
 
 import (
-	"github.com/magodo/terraform-provider-outlook/msauth"
 	"os"
 	"testing"
+
+	"github.com/magodo/terraform-provider-outlook/msauth"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

@@ -23,9 +23,12 @@ fmt:
 	@echo "==> Fixing source code with gofmt..."
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
+goimports:
+	@echo "==> Fixing imports code with goimports..."
+	goimports -w $(PKG_NAME)/
+
 lint:
-	@echo "==> Checking source code against linters..."
-	golangci-lint run ./...
+	./scripts/run-lint.sh
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1

@@ -69,7 +69,6 @@ func TestToPtrOrNil(t *testing.T) {
 			t.Fatalf("%d failed\nexpected:\n%s\nactual:\n%s\n", idx, spew.Sdump(c.out), spew.Sdump(out))
 		}
 	}
-
 }
 
 func TestSafeDeref(t *testing.T) {

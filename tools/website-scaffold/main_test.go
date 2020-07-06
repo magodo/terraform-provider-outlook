@@ -9,10 +9,9 @@ import (
 )
 
 const (
-	RESOURCE_NAME    = "outlook_foobar"
-	BRAND_NAME       = "Foobar"
-	RESOURCE_ID      = "12345"
-	WEBSITE_CATEGORY = "Foobar Category"
+	RESOURCE_NAME = "outlook_foobar"
+	BRAND_NAME    = "Foobar"
+	RESOURCE_ID   = "12345"
 )
 
 func TestResourceArgumentBlock(t *testing.T) {
