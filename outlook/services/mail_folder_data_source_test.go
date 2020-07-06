@@ -30,7 +30,7 @@ func testAccDsMailFolderConfig_basic(suffix string) string {
 %s
 
 data "outlook_mail_folder" "test" {
-	name = outlook_mail_folder.test.name
+  name = outlook_mail_folder.test.name
 }
 `, testAccMailFolderConfig_basic(suffix))
 }

@@ -36,6 +36,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 tflint:
+	./scripts/terrafmt-acctests.sh
 	go run ./linter -- ./$(PKG_NAME)/...
 
 whitespace:
@@ -50,6 +51,7 @@ endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
 website-lint:
+	./scripts/terrafmt-website.sh
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text website/
 	@echo "==> Checking documentation for errors..."

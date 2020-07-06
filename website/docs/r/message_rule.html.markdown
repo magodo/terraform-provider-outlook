@@ -18,9 +18,9 @@ resource "outlook_mail_folder" "example" {
 }
 
 resource "outlook_message_rule" "example" {
-  name = "move message from foo@bar.com to Foo"
+  name     = "move message from foo@bar.com to Foo"
   sequence = "1"
-  enabled = true
+  enabled  = true
   condition {
     from_addresses = ["foo@bar.com"]
   }

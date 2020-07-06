@@ -61,9 +61,9 @@ func TestAccMessageRuleResource_upgrade(t *testing.T) {
 func testAccMessageRuleConfig_basic(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_message_rule" "test" {
-  name = "msgrule-%[1]s"
+  name     = "msgrule-%[1]s"
   sequence = "1"
-  enabled = false
+  enabled  = false
   action {
     mark_as_read = true
   }
@@ -74,22 +74,22 @@ resource "outlook_message_rule" "test" {
 func testAccMessageRuleConfig_complete(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_mail_folder" "test" {
-	name = "msgrule-%[1]s"
+  name = "msgrule-%[1]s"
 }
 
 resource "outlook_message_rule" "test" {
-  name = "msgrule-%[1]s"
+  name     = "msgrule-%[1]s"
   sequence = "2"
-  enabled = true
+  enabled  = true
   condition {
     from_addresses = [
       "foo@bar.com"
     ]
-    importance = "high"
+    importance         = "high"
     is_meeting_request = true
   }
   action {
-    mark_as_read = true
+    mark_as_read   = true
     copy_to_folder = outlook_mail_folder.test.id
   }
 }

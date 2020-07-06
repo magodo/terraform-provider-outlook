@@ -28,7 +28,7 @@ func TestAccMailFolderResource_basic(t *testing.T) {
 func testAccMailFolderConfig_basic(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_mail_folder" "test" {
-	name = "foo%s"
+  name = "foo%s"
 }
 `, suffix)
 }
