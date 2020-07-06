@@ -118,28 +118,28 @@ jobs:
         run: |
           GO111MODULE=off go get -u github.com/hashicorp/terraform
           make website-lint
-  website-test:
-    name: website-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: make tools
-
-      - name: make website-test
-        run: |
-          export PATH="$PATH:$HOME/go/bin"
-          export GOPATH=$HOME/go
-          make website-test
+#   website-test:
+#     name: website-test
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Setup env
+#         run: |
+#           echo "::set-env name=GOPATH::$HOME/go"
+#           echo "::set-env name=PATH::$PATH:$HOME/go/bin"
+#       - name: Set up Go 1.13
+#         uses: actions/setup-go@v1
+#         with:
+#           go-version: 1.13
+#         id: go
+#
+#       - name: Check out code into the Go module directory
+#         uses: actions/checkout@v2
+#
+#       - name: Install dependencies
+#         run: make tools
+#
+#       - name: make website-test
+#         run: |
+#           export PATH="$PATH:$HOME/go/bin"
+#           export GOPATH=$HOME/go
+#           make website-test
