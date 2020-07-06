@@ -35,9 +35,9 @@ func Provider() *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"token_cache_path": {
 				Type:        schema.TypeString,
-				Description: "Token Cache Path",
+				Description: "Token cache file path. If specified, the provider will export the token info into this file for reuse. Accordingly, the provider will try to load the token from this file if file exists.",
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_TOKEN_CACHE_PATH", ".terraform-provider-outlook.json"),
+				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_TOKEN_CACHE_PATH", ""),
 			},
 		},
 
@@ -51,8 +51,7 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
-	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		tokenCachePath := d.Get("token_cache_path").(string)
+	return func(ctx context.Context, d *schema.ResourceData) (meta interface{}, diags diag.Diagnostics) {
 		const (
 			// Use msgraph tutorial client id as client id. As custom registered app
 			// at tenant AAD level is not able to invoke outlook ms graph API.
@@ -61,13 +60,27 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			tenantID = "common"
 		)
 		app := msauth.NewApp()
-		if err := app.ImportCache(tokenCachePath); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return nil, diag.FromErr(err)
+
+		// Import token cache if specified, accordingly export the updated token cache at the end of configuring provider.
+		tokenCachePath := d.Get("token_cache_path").(string)
+		if tokenCachePath != "" {
+			if err := app.ImportCache(tokenCachePath); err != nil && !errors.Is(err, os.ErrNotExist) {
+				return nil, diag.FromErr(err)
+			}
+			defer func() {
+				if !diags.HasError() {
+					if err := app.ExportCache(tokenCachePath); err != nil {
+						diags = diag.FromErr(err)
+					}
+				}
+			}()
 		}
 		ts, err := app.ObtainTokenSourceViaDeviceFlow(context.Background(), tenantID, clientID,
 			func(auth msauth.DeviceAuthorization) error {
-				return browser.OpenReader(strings.NewReader(fmt.Sprintf("To sign in, use a web browser to open the page %s and enter the code %s to authenticate (with in %d sec).\n",
-					auth.VerificationURI, auth.UserCode, auth.ExpiresIn)))
+				return browser.OpenReader(
+					strings.NewReader(
+						buildDeviceflowMessage(auth.VerificationURI, auth.UserCode, auth.ExpiresIn)),
+				)
 			},
 			"mailboxsettings.readwrite",
 			"mail.readwrite",
@@ -76,9 +89,21 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
-		if err := app.ExportCache(tokenCachePath); err != nil {
-			return nil, diag.FromErr(err)
-		}
 		return clients.NewClient(msgraph.NewClient(oauth2.NewClient(context.Background(), ts)).BaseRequestBuilder), nil
 	}
+}
+
+func buildDeviceflowMessage(uri, code string, timeout int) string {
+	return fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Terraform Outlook Provider</h1>
+
+<p>To sign in, use a web browser to open the <a href="%s">Microsoft device login page</a> and enter the code <p>%s</p> to authenticate (with in %d sec).</p>
+
+</body>
+</html>
+`, uri, code, timeout)
 }
