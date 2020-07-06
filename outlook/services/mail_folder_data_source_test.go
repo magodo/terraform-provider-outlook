@@ -15,10 +15,9 @@ func TestAccMailFolderDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDsMailFolderConfig_basic(acctest.RandString(3)),
-				Check:  resource.ComposeTestCheckFunc(
-				// testCheckMailFolderExists(t, "name"),
+				Check: resource.ComposeTestCheckFunc(
+					// testCheckMailFolderExists(t, "name"),
 					resource.TestCheckResourceAttrSet("data.outlook_mail_folder.test", "name"),
-
 				),
 			},
 		},
@@ -32,5 +31,5 @@ func testAccDsMailFolderConfig_basic(suffix string) string {
 data "outlook_mail_folder" "test" {
 	name = outlook_mail_folder.test.name
 }
-`,  testAccMailFolderConfig_basic(suffix))
+`, testAccMailFolderConfig_basic(suffix))
 }

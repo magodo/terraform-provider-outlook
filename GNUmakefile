@@ -20,6 +20,10 @@ build: fmtcheck
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
+fmt:
+	@echo "==> Fixing source code with gofmt..."
+	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+
 lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./...
