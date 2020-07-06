@@ -9,7 +9,6 @@ default: build
 tools:
 	@echo "==> installing required tooling..."
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
-	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$GOPATH/bin v1.24.0
@@ -34,7 +33,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 tflint:
-	tfproviderlint ./$(PKG_NAME)/...
+	go run ./linter -- ./$(PKG_NAME)/...
 
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."

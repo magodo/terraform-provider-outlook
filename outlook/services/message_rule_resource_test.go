@@ -8,7 +8,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccMessageRuleResource(t *testing.T) {
+func TestAccMessageRuleResource_basic(t *testing.T) {
+	suffix := acctest.RandString(3)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { preCheck(t) },
+		ProviderFactories: providerFactories,
+		// TODO: CheckDestroy: ,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMessageRuleConfig_basic(suffix),
+				// Check:  resource.ComposeTestCheckFunc(
+				// // testCheckMailFolderExists(t, "name"),
+				// ),
+			},
+			importStep("outlook_message_rule.test"),
+		},
+	})
+}
+
+func TestAccMessageRuleResource_upgrade(t *testing.T) {
 	suffix := acctest.RandString(3)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { preCheck(t) },
