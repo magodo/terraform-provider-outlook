@@ -16,6 +16,19 @@ import (
 	"golang.org/x/oauth2"
 )
 
+func SupportedResources() map[string]*schema.Resource {
+	return map[string]*schema.Resource{
+		"outlook_mail_folder":  services.ResourceMailFolder(),
+		"outlook_message_rule": services.ResourceMessageRule(),
+	}
+}
+
+func SupportedDataSources() map[string]*schema.Resource {
+	return map[string]*schema.Resource{
+		"outlook_mail_folder": services.DataSourceMailFolder(),
+	}
+}
+
 func Provider() *schema.Provider {
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -27,13 +40,8 @@ func Provider() *schema.Provider {
 			},
 		},
 
-		DataSourcesMap: map[string]*schema.Resource{
-			"outlook_mail_folder": services.DataSourceMailFolder(),
-		},
-		ResourcesMap: map[string]*schema.Resource{
-			"outlook_mail_folder":  services.ResourceMailFolder(),
-			"outlook_message_rule": services.ResourceMessageRule(),
-		},
+		DataSourcesMap: SupportedDataSources(),
+		ResourcesMap:   SupportedResources(),
 	}
 
 	p.ConfigureFunc = providerConfigure(p)

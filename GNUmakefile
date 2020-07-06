@@ -54,6 +54,9 @@ terrafmt-lint:
 	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
 	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
 
+scaffold-website:
+	./scripts/scaffold-website.sh
+
 website-test:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
