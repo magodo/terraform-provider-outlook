@@ -71,29 +71,29 @@ jobs:
       - name: make test
         run: |
           make test
-  depscheck:
-    name: depscheck
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: make tools
-
-      - name: make depscheck
-        run: |
-          make depscheck
+#   depscheck:
+#     name: depscheck
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Setup env
+#         run: |
+#           echo "::set-env name=GOPATH::$HOME/go"
+#           echo "::set-env name=PATH::$PATH:$HOME/go/bin"
+#       - name: Set up Go 1.13
+#         uses: actions/setup-go@v1
+#         with:
+#           go-version: 1.13
+#         id: go
+#
+#       - name: Check out code into the Go module directory
+#         uses: actions/checkout@v2
+#
+#       - name: Install dependencies
+#         run: make tools
+#
+#       - name: make depscheck
+#         run: |
+#           make depscheck
   website-lint:
     name: website-lint
     runs-on: ubuntu-latest
