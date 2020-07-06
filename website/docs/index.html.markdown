@@ -2,7 +2,7 @@
 layout: "outlook"
 page_title: "Provider: Outlook"
 description: |-
-  The Outlook provider is used to TODO.
+  The Outlook provider is used to manage outlook related resources.
 ---
 
 # Outlook Provider
@@ -18,7 +18,4 @@ provider "outlook" {
 }
 
 # Example resource configuration
-resource "outlook_scaffolding_resource" "example" {
-  # ...
-}
 ```

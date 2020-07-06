@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/magodo/terraform-provider-outlook/msauth"
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
@@ -15,6 +16,19 @@ import (
 	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 	"golang.org/x/oauth2"
 )
+
+func SupportedResources() map[string]*schema.Resource {
+	return map[string]*schema.Resource{
+		"outlook_mail_folder":  services.ResourceMailFolder(),
+		"outlook_message_rule": services.ResourceMessageRule(),
+	}
+}
+
+func SupportedDataSources() map[string]*schema.Resource {
+	return map[string]*schema.Resource{
+		"outlook_mail_folder": services.DataSourceMailFolder(),
+	}
+}
 
 func Provider() *schema.Provider {
 	p := &schema.Provider{
@@ -27,22 +41,17 @@ func Provider() *schema.Provider {
 			},
 		},
 
-		DataSourcesMap: map[string]*schema.Resource{
-			"outlook_mail_folder": services.DataSourceMailFolder(),
-		},
-		ResourcesMap: map[string]*schema.Resource{
-			"outlook_mail_folder":  services.ResourceMailFolder(),
-			"outlook_message_rule": services.ResourceMessageRule(),
-		},
+		DataSourcesMap: SupportedDataSources(),
+		ResourcesMap:   SupportedResources(),
 	}
 
-	p.ConfigureFunc = providerConfigure(p)
+	p.ConfigureContextFunc = providerConfigure(p)
 
 	return p
 }
 
-func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
-	return func(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		tokenCachePath := d.Get("token_cache_path").(string)
 		const (
 			// Use msgraph tutorial client id as client id. As custom registered app
@@ -53,11 +62,11 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		)
 		app := msauth.NewApp()
 		if err := app.ImportCache(tokenCachePath); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return nil, err
+			return nil, diag.FromErr(err)
 		}
 		ts, err := app.ObtainTokenSourceViaDeviceFlow(context.Background(), tenantID, clientID,
-			func(auth msauth.DeviceAuthorization) {
-				browser.OpenReader(strings.NewReader(fmt.Sprintf("To sign in, use a web browser to open the page %s and enter the code %s to authenticate (with in %d sec).\n",
+			func(auth msauth.DeviceAuthorization) error {
+				return browser.OpenReader(strings.NewReader(fmt.Sprintf("To sign in, use a web browser to open the page %s and enter the code %s to authenticate (with in %d sec).\n",
 					auth.VerificationURI, auth.UserCode, auth.ExpiresIn)))
 			},
 			"mailboxsettings.readwrite",
@@ -65,10 +74,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			"offline_access",
 		)
 		if err != nil {
-			return nil, err
+			return nil, diag.FromErr(err)
 		}
 		if err := app.ExportCache(tokenCachePath); err != nil {
-			return nil, err
+			return nil, diag.FromErr(err)
 		}
 		return clients.NewClient(msgraph.NewClient(oauth2.NewClient(context.Background(), ts)).BaseRequestBuilder), nil
 	}

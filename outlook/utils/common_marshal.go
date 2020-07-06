@@ -105,7 +105,7 @@ func FlattenStringMap(input interface{}, convert func(interface{}) interface{}) 
 		panic("Invalid input: key of input map is not a string")
 	}
 
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 	iter := v.MapRange()
 	for iter.Next() {
 		k, v := iter.Key(), iter.Value()

@@ -9,7 +9,6 @@ default: build
 tools:
 	@echo "==> installing required tooling..."
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
-	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$GOPATH/bin v1.24.0
@@ -20,9 +19,16 @@ build: fmtcheck
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
+fmt:
+	@echo "==> Fixing source code with gofmt..."
+	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+
+goimports:
+	@echo "==> Fixing imports code with goimports..."
+	goimports -w $(PKG_NAME)/
+
 lint:
-	@echo "==> Checking source code against linters..."
-	golangci-lint run ./...
+	./scripts/run-lint.sh
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1
@@ -30,7 +36,8 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 tflint:
-	tfproviderlint ./$(PKG_NAME)/...
+	./scripts/terrafmt-acctests.sh
+	go run ./linter -- ./$(PKG_NAME)/...
 
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
@@ -44,6 +51,7 @@ endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
 website-lint:
+	./scripts/terrafmt-website.sh
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text website/
 	@echo "==> Checking documentation for errors..."
@@ -53,6 +61,9 @@ website-lint:
 terrafmt-lint:
 	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
 	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
+
+scaffold-website:
+	./scripts/scaffold-website.sh
 
 website-test:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))

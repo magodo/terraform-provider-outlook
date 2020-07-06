@@ -421,7 +421,7 @@ func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta
 		// NOTE: When optional attribute is changed to be absent, we should force zero it in request body.
 		//       Otherwise, it will be omit in request body.
 		if param.Conditions == nil {
-			param.Conditions = 	&msgraph.MessageRulePredicates{}
+			param.Conditions = &msgraph.MessageRulePredicates{}
 		}
 	}
 	if d.HasChange("exception") {
@@ -429,7 +429,7 @@ func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta
 		//       Otherwise, it will be omit in request body.
 		param.Exceptions = expandMessageRulePredicate(d.Get("exception").([]interface{}))
 		if param.Exceptions == nil {
-			param.Exceptions = 	&msgraph.MessageRulePredicates{}
+			param.Exceptions = &msgraph.MessageRulePredicates{}
 		}
 	}
 	if d.HasChange("action") {

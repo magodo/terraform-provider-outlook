@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccMailFolderResource(t *testing.T) {
+func TestAccMailFolderResource_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { preCheck(t) },
 		ProviderFactories: providerFactories,
@@ -28,7 +28,7 @@ func TestAccMailFolderResource(t *testing.T) {
 func testAccMailFolderConfig_basic(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_mail_folder" "test" {
-	name = "foo%s"
+  name = "foo%s"
 }
 `, suffix)
 }

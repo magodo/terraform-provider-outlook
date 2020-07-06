@@ -2,12 +2,13 @@ package services_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"testing"
 )
 
-func TestAccMailFolderDataSource(t *testing.T) {
+func TestAccMailFolderDataSource_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { preCheck(t) },
 		ProviderFactories: providerFactories,
@@ -15,10 +16,9 @@ func TestAccMailFolderDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDsMailFolderConfig_basic(acctest.RandString(3)),
-				Check:  resource.ComposeTestCheckFunc(
-				// testCheckMailFolderExists(t, "name"),
+				Check: resource.ComposeTestCheckFunc(
+					// testCheckMailFolderExists(t, "name"),
 					resource.TestCheckResourceAttrSet("data.outlook_mail_folder.test", "name"),
-
 				),
 			},
 		},
@@ -30,7 +30,7 @@ func testAccDsMailFolderConfig_basic(suffix string) string {
 %s
 
 data "outlook_mail_folder" "test" {
-	name = outlook_mail_folder.test.name
+  name = outlook_mail_folder.test.name
 }
-`,  testAccMailFolderConfig_basic(suffix))
+`, testAccMailFolderConfig_basic(suffix))
 }
