@@ -76,7 +76,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			}()
 		}
 		ts, err := app.ObtainTokenSourceViaDeviceFlow(context.Background(), tenantID, clientID,
-			func(auth msauth.DeviceAuthorization) error {
+			func(auth msauth.DeviceAuthorizationAuth) error {
 				return browser.OpenReader(
 					strings.NewReader(
 						buildDeviceflowMessage(auth.VerificationURI, auth.UserCode, auth.ExpiresIn)),
