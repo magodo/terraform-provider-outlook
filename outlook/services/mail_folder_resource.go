@@ -106,7 +106,24 @@ func resourceMailFolderUpdate(ctx context.Context, d *schema.ResourceData, meta 
 
 func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
-	if err := client.ID(d.Id()).Request().Delete(ctx); err != nil {
+
+	const dustbinName = "Deleted Items"
+	req := client.Request()
+	req.Filter(fmt.Sprintf(`displayName eq '%s'`, dustbinName))
+	objs, err := req.Get(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if len(objs) != 1 {
+		return diag.Errorf("expect one mail folder with name '%s' but got %d", dustbinName, len(objs))
+	}
+
+	dustbin := objs[0]
+	if dustbin.ID == nil || *dustbin.ID == "" {
+		return diag.Errorf("empty or nil ID returned for Mail Folder %q ID", dustbinName)
+	}
+
+	if _, err := client.ID(d.Id()).Move(&msgraph.MailFolderMoveRequestParameter{DestinationID: dustbin.ID}).Request().Post(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
