@@ -64,8 +64,18 @@ func (app *App) ObtainTokenSourceViaDeviceFlow(ctx context.Context, tenantID str
 			return nil, err
 		}
 		app.tokenCache.Set(client.ID(), t)
+		return client.ObtainTokenSource(ctx, t)
 	}
-	return client.ObtainTokenSource(ctx, t)
+	ts, err := client.ObtainTokenSource(ctx, t)
+	if err != nil {
+		return nil, err
+	}
+	newt, err := ts.Token()
+	if err != nil {
+		return nil, err
+	}
+	app.tokenCache.Set(client.ID(), newt)
+	return ts, nil
 }
 
 func NewApp() *App {
