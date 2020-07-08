@@ -18,17 +18,13 @@ I am a Microsoft employee, but this is not an official Microsoft product nor an 
 Run following command to install the provider into your `$GOPATH/bin`.
 
 ```
-$ GO111MODULE=off go get -u github.com/magodo/terraform-provider-outlook
+$ go get -u github.com/magodo/terraform-provider-outlook
 ```
 
 Then follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory,  run `terraform init` to initialize it.
 
 ## Provider Documents
 
-Currently the documents for this provider is not hosted by the official site [Terraform Providers](https://www.terraform.io/docs/providers/index.html). Please enter the provider directory and build the website locally.
+Currently the documents for this provider is not hosted by the official site [Terraform Providers](https://www.terraform.io/docs/providers/index.html). Hence you have to follow the instructions [here](https://github.com/hashicorp/terraform-website#new-provider-repositories) to manually setup a bit so that you can run `make website` to see the document.
 
-```sh
-$ make website
-```
-
-The commands above will start a docker-based web server powered by [Middleman](https://middlemanapp.com/), which hosts the documents in `website` directory. Simply open `http://localhost:4567/docs/providers/outlook` and enjoy them.
+In the near future, we will host the provider on terraform registry, and the document will be hosted there also.
