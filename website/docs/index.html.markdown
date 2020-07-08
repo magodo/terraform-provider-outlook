@@ -58,8 +58,8 @@ Once the user finishes the authentication, the provider will write the token (in
 ```hcl
 # Configure the Outlook Provider
 provider "outlook" {
-    # browser_enabled = true
-    # token_cache_path = ".terraform-provider-outlook.json"
+  # browser_enabled = true
+  # token_cache_path = ".terraform-provider-outlook.json"
 }
 
 # Create a mail folder
@@ -69,9 +69,9 @@ resource "outlook_mail_folder" "example" {
 
 # Create a message rule to move message meet certain condition into the folder created above
 resource "outlook_message_rule" "example" {
-  name = "move message from foo@bar.com to Foo"
+  name     = "move message from foo@bar.com to Foo"
   sequence = "1"
-  enabled = true
+  enabled  = true
   condition {
     from_addresses = ["foo@bar.com"]
   }
