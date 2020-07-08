@@ -132,6 +132,8 @@ You can close this window now.
 		"redirect_uri":  {c.config.RedirectURL},
 		"state":         {state},
 	}
+	defer srv.Close()
+
 	if err := browser.OpenURL(fmt.Sprintf("%s?%s", c.config.Endpoint.AuthURL, query.Encode())); err != nil {
 		return nil, err
 	}
