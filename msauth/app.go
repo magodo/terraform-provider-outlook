@@ -51,11 +51,18 @@ func (app *App) ExportCache(path string) error {
 }
 
 func (app *App) ObtainTokenSourceViaClientCredential(ctx context.Context, tenantID string, clientID, clientCredential string, scopes ...string) (oauth2.TokenSource, error) {
-	return NewPrivateClientViaClientCredential(tenantID, clientID, clientCredential, scopes...).ObtainTokenSource(ctx)
+	return NewClientCredentialClient(tenantID, clientID, clientCredential, scopes...).ObtainTokenSource(ctx)
 }
 
-func (app *App) ObtainTokenSourceViaDeviceFlow(ctx context.Context, tenantID string, clientID string, f DeviceAuthorizationUserInteractionFunc, scopes ...string) (oauth2.TokenSource, error) {
-	client := NewPublicClientViaDeviceFlow(tenantID, clientID, f, scopes...)
+func (app *App) ObtainTokenSourceViaDeviceFlow(ctx context.Context, tenantID string, clientID string, f DeviceAuthorizationCallback, scopes ...string) (oauth2.TokenSource, error) {
+	return app.obtainTokenSourceViaClient(ctx, NewClientViaDeviceFlow(tenantID, clientID, f, scopes...))
+}
+
+func (app *App) ObtainTokenSourceViaAuthorizationCodeFlow(ctx context.Context, tenantID, clientID, clientSecret, redirectURL string, scopes ...string) (oauth2.TokenSource, error) {
+	return app.obtainTokenSourceViaClient(ctx, NewClientViaAuthorizationCodeFlow(tenantID, clientID, clientSecret, redirectURL, scopes...))
+}
+
+func (app *App) obtainTokenSourceViaClient(ctx context.Context, client Client) (oauth2.TokenSource, error) {
 	t := app.tokenCache.Get(client.ID())
 	if t == nil {
 		var err error

@@ -9,12 +9,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func oauthClientID(clientID, tokenURL string, scopes []string) string {
+func clientIdentifier(clientID, tokenURL string, scopes []string) string {
 	sort.Strings(scopes)
 	return fmt.Sprintf("%s @ %s (%s)", clientID, tokenURL, strings.Join(scopes, " "))
 }
 
-type PublicClient interface {
+type Client interface {
 	// ObtainTokenSource obtains token source in different kinds of grant types
 	ObtainTokenSource(ctx context.Context, t *oauth2.Token) (oauth2.TokenSource, error)
 
