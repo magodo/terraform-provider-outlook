@@ -1,17 +1,6 @@
-## 0.0.1 (Unreleased)
-
-NOTES:
-
-* note1
+## 0.0.1
 
 FEATURES:
 
-* feature1
-
-ENHANCEMENTS:
-
-* enhancement1
-
-BUG FIXES:
-
-* bugfix1
+* New Resource/Data Source: `outlook_mail_folder`
+* New Resource: `outlook_message_rule`
