@@ -46,4 +46,4 @@ signs:
       - "--detach-sign"
       - "${artifact}"
 changelog:
-  sort: asc
+  skip: true
