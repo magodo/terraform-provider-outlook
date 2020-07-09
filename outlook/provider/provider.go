@@ -28,6 +28,7 @@ func SupportedResources() map[string]*schema.Resource {
 func SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"outlook_mail_folder": services.DataSourceMailFolder(),
+		"outlook_category":    services.DataSourceOutlookCategory(),
 	}
 }
 

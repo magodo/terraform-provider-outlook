@@ -121,7 +121,7 @@ func resourceArmCategoryRead(ctx context.Context, d *schema.ResourceData, meta i
 	resp, err := client.ID(d.Id()).Request().Get(ctx)
 	if err != nil {
 		if utils.ResponseErrorWasNotFound(err) {
-			log.Printf("[WARN] Outlook Category %q does not exist - removing from state")
+			log.Printf("[WARN] Outlook Category %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
