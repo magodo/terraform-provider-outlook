@@ -52,6 +52,8 @@ The following arguments are supported:
 
 A `action` block supports the following:
 
+* `assign_categories` - (Optional) A list of categories to be assigned to a message.
+
 * `copy_to_folder` - (Optional) The ID of a folder that a message is to be copied to.
 
 * `delete` - (Optional) Indicates whether a message should be moved to the Deleted Items folder.
@@ -79,6 +81,8 @@ A `condition` block supports the following:
 * `body_contains` - (Optional) Specifies the strings that should appear in the body of an incoming message in order for the condition or exception to apply.
 
 * `body_or_subject_contains` - (Optional) Specifies a list of the strings that should appear in the body or subject of an incoming message in order for the condition or exception to apply.
+
+* `categories` - (Optional) Specifies a list of the categories that an incoming message should be labeled with in order for the condition or exception to apply.
 
 * `from_addresses` - (Optional) Specifies a list of the specific sender email addresses of an incoming message in order for the condition or exception to apply.
 

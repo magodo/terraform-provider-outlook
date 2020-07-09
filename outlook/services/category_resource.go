@@ -2,13 +2,16 @@ package services
 
 import (
 	"context"
-	msgraph "github.com/yaegashi/msgraph.go/v1.0"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
+	"github.com/magodo/terraform-provider-outlook/outlook/utils"
 	"github.com/magodo/terraform-provider-outlook/outlook/validation"
+	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 )
 
 func ResourceCategory() *schema.Resource {
@@ -37,15 +40,10 @@ func ResourceCategory() *schema.Resource {
 			},
 
 			"color": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateDiagFunc: validation.StringInSlice(func(m map[string]msgraph.CategoryColor) []string {
-					keys := make([]string, len(m))
-					for k := range m {
-						keys = append(keys, k)
-					}
-					return keys
-				}(colorMap), false),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          "None",
+				ValidateDiagFunc: validation.StringInSlice(keySlice(colorMap), false),
 			},
 		},
 	}
@@ -85,11 +83,55 @@ var (
 func resourceArmCategoryCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).Categories
 
+	name := d.Get("name").(string)
+
+	if d.IsNewResource() {
+		req := client.Request()
+		req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
+		objs, err := req.Get(ctx)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if len(objs) != 0 {
+			return utils.ImportAsExistsError("outlook_category", *(objs[0].ID))
+		}
+	}
+
+	param := &msgraph.OutlookCategory{
+		DisplayName: utils.String(name),
+		Color:       expandCategoryColor(colorMap, d.Get("color").(string)),
+	}
+
+	resp, err := client.Request().Add(ctx, param)
+	if err != nil {
+		return diag.Errorf("creating Outlook Category %q: %+v", name, err)
+	}
+
+	if resp.ID == nil {
+		return diag.Errorf("nil ID for Outlook Category %q", name)
+	}
+	d.SetId(*resp.ID)
+
 	return resourceArmCategoryRead(ctx, d, meta)
 }
 
 func resourceArmCategoryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).Categories
+
+	resp, err := client.ID(d.Id()).Request().Get(ctx)
+	if err != nil {
+		if utils.ResponseErrorWasNotFound(err) {
+			log.Printf("[WARN] Outlook Category %q does not exist - removing from state")
+			d.SetId("")
+			return nil
+		}
+		return diag.FromErr(err)
+	}
+
+	d.Set("name", resp.DisplayName)
+	if err := d.Set("color", flattenCategoryColor(colorMap, resp.Color)); err != nil {
+		return diag.Errorf("setting `color`: %+v", err)
+	}
 
 	return nil
 }
@@ -97,11 +139,49 @@ func resourceArmCategoryRead(ctx context.Context, d *schema.ResourceData, meta i
 func resourceArmCategoryUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).Categories
 
+	var param msgraph.OutlookCategory
+
+	if d.HasChange("color") {
+		param.Color = expandCategoryColor(colorMap, d.Get("color").(string))
+	}
+
+	if err := client.ID(d.Id()).Request().Update(ctx, &param); err != nil {
+		return diag.Errorf("updating Outlook Category %q: %+v", d.Get("name").(string), err)
+	}
+
 	return resourceArmCategoryRead(ctx, d, meta)
 }
 
 func resourceArmCategoryDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).Categories
 
+	if err := client.ID(d.Id()).Request().Delete(ctx); err != nil {
+		return diag.Errorf("deleting Outlook Category %q: %+v", d.Get("name").(string), err)
+	}
+
 	return nil
+}
+
+func keySlice(m map[string]msgraph.CategoryColor) []string {
+	keys := make([]string, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func expandCategoryColor(m map[string]msgraph.CategoryColor, color string) *msgraph.CategoryColor {
+	return utils.ToPtr(m[color]).(*msgraph.CategoryColor)
+}
+
+func flattenCategoryColor(m map[string]msgraph.CategoryColor, color *msgraph.CategoryColor) string {
+	if color == nil {
+		return "None"
+	}
+	for k, v := range m {
+		if v == *color {
+			return k
+		}
+	}
+	return "None"
 }

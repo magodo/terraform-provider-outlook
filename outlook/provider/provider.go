@@ -21,7 +21,7 @@ func SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"outlook_mail_folder":  services.ResourceMailFolder(),
 		"outlook_message_rule": services.ResourceMessageRule(),
-		"outlook_category": services.ResourceCategory(),
+		"outlook_category":     services.ResourceCategory(),
 	}
 }
 

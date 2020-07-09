@@ -7,7 +7,7 @@ import (
 type Client struct {
 	MailFolders  *msgraph.UserMailFoldersCollectionRequestBuilder
 	MessageRules *msgraph.MailFolderMessageRulesCollectionRequestBuilder
-	Categories	*msgraph.OutlookUserMasterCategoriesCollectionRequestBuilder
+	Categories   *msgraph.OutlookUserMasterCategoriesCollectionRequestBuilder
 }
 
 func NewClient(b msgraph.BaseRequestBuilder) *Client {
