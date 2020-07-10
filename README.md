@@ -15,16 +15,18 @@ I am a Microsoft employee, but this is not an official Microsoft product nor an 
 
 ## Using the Provider 
 
-Run following command to install the provider into your `$GOPATH/bin`.
+### Terraform 0.13 and above
 
-```
-$ go get -u github.com/magodo/terraform-provider-outlook
-```
+You can use the provider via the [Terraform provider registry](https://registry.terraform.io/providers/magodo/outlook).
 
-Then follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory,  run `terraform init` to initialize it.
+### Terraform 0.12 or manual installation
+
+You can download a pre-built binary from the [releases](https://github.com/magodo/terraform-provider-outlook/releases) page, these are built using [goreleaser](https://goreleaser.com/) (the [configuration](.goreleaser.yml) is in the repo). You can verify the signature and my [key ownership via Keybase](https://keybase.io/magodo).
+
+If you want to build from source, you can simply use `go build` in the root of the repository.
+
+To use an external provider binary with Terraform ([until the provider registry is GA](https://www.hashicorp.com/blog/announcing-providers-in-the-new-terraform-registry/)), you need to place the binary in a [plugin location for Terraform](https://www.terraform.io/docs/configuration/providers.html#third-party-plugins) to find it.
 
 ## Provider Documents
 
-Currently the documents for this provider is not hosted by the official site [Terraform Providers](https://www.terraform.io/docs/providers/index.html). Hence you have to follow the instructions [here](https://github.com/hashicorp/terraform-website#new-provider-repositories) to manually setup a bit so that you can run `make website` to see the document.
-
-In the near future, we will host the provider on terraform registry, and the document will be hosted there also.
+The document of this provider is available on [Terraform Provider Registry](https://registry.terraform.io/providers/magodo/outlook/latest/docs).
