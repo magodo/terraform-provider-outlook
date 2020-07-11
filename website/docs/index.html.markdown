@@ -106,9 +106,9 @@ The following arguments are supported:
 
 * `auth_method` - (Optional) The oauth2 authentication method to use. Possible values are `auth_code_flow` and `device_flow`. This can also be sourced from the `OUTLOOK_AUTH_METHOD` Environment Variable. Defaults to `auth_code_flow`.
 
-* `client_id` - (Optional) The AzureAD registerd application's Object ID (i.e. oauth2 client_id). This can also be sourced from the `OUTLOOK_CLIENT_ID` Environment Variable. Defaults to `23bd8cd9-a50b-4839-b522-67b77d5db7da`.
+* `client_id` - (Optional) The AzureAD registered application's Object ID (i.e. oauth2 client_id). This can also be sourced from the `OUTLOOK_CLIENT_ID` Environment Variable. Defaults to `23bd8cd9-a50b-4839-b522-67b77d5db7da`.
 
-* `client_secret` - (Optional) The AzureAD registerd application's secret (i.e. oauth2 client_secret). For native public application, you can leave it unset. This can also be sourced from the `OUTLOOK_CLIENT_SECRET` Environment Variable.
+* `client_secret` - (Optional) The AzureAD registered application's secret (i.e. oauth2 client_secret). For native public application, you can leave it unset. This can also be sourced from the `OUTLOOK_CLIENT_SECRET` Environment Variable.
 
 * `client_redirect_url` - (Optional) The AzureAD registered application's redirect URL. This can also be sourced from the `OUTLOOK_CLIENT_REDIRECT_URL` Environment Variable. Defaults to `http://localhost:3000/`.
 

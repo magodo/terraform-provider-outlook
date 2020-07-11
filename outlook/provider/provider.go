@@ -50,13 +50,13 @@ func Provider() *schema.Provider {
 			},
 			"client_id": {
 				Type:        schema.TypeString,
-				Description: "The AzureAD registerd application's Object ID (i.e. oauth2 client_id)",
+				Description: "The AzureAD registered application's Object ID (i.e. oauth2 client_id)",
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_CLIENT_ID", "23bd8cd9-a50b-4839-b522-67b77d5db7da"),
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
-				Description: "The AzureAD registerd application's secret (i.e. oauth2 client_secret). For native public application, you can leave it unset.",
+				Description: "The AzureAD registered application's secret (i.e. oauth2 client_secret). For native public application, you can leave it unset.",
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_CLIENT_SECRET", ""),
 			},
