@@ -30,9 +30,9 @@ Set provider configuration as below:
 
 ```hcl
 provider "outlook" {
-  auth_method = "..." # e.g. auth_code_flow
-  client_id = "..." # e.g. 23bd8cd9-a50b-4839-b522-67b77d5db7da
-  client_secret = "..." # not necessary for public native app
+  auth_method         = "..." # e.g. auth_code_flow
+  client_id           = "..." # e.g. 23bd8cd9-a50b-4839-b522-67b77d5db7da
+  client_secret       = "..." # not necessary for public native app
   client_redirect_url = "..." # e.g. http://localhost:3000/
 }
 ```
@@ -48,7 +48,7 @@ Set provider configuration as below:
 ```hcl
 provider "outlook" {
   auth_method = "device_flow"
-  client_id = "..." # e.g. 23bd8cd9-a50b-4839-b522-67b77d5db7da
+  client_id   = "..." # e.g. 23bd8cd9-a50b-4839-b522-67b77d5db7da
 }
 ```
 
