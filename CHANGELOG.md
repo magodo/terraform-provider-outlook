@@ -1,3 +1,9 @@
+## 0.0.2 (not released)
+
+FEATURES:
+
+* Provider: allow user to specify oauth2 client and auth method underused.
+
 ## 0.0.1
 
 FEATURES:
