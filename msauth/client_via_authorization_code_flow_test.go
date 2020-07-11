@@ -17,9 +17,18 @@ func TestObtainTokenViaAuthorizationCodeFlow(t *testing.T) {
 		return
 	}
 
-	clientID := "6731de76-14a6-49ae-97bc-6eba6914391e" // msgraph tutorial client id
-	clientSecret := "JqQX2PNo9bpM0uEihUPzyrh"
-	c := msauth.NewClientViaAuthorizationCodeFlow("common", clientID, clientSecret, "http://localhost:8888/myapp/", "offline_access", "openid", "https://graph.microsoft.com/mail.read")
+	clientID := "23bd8cd9-a50b-4839-b522-67b77d5db7da"
+	redirectURL := "http://localhost:3000/"
+	clientSecret := ""
+
+	scopes := []string{
+		"mailboxsettings.readwrite",
+		"mail.readwrite",
+		"offline_access",
+	}
+
+	c := msauth.NewClientViaAuthorizationCodeFlow("common", clientID, clientSecret, redirectURL, scopes...)
+
 	tk, err := c.ObtainToken(context.Background())
 	if err != nil {
 		t.Fatal(err)

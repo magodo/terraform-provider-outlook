@@ -3,16 +3,23 @@ package provider
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/magodo/terraform-provider-outlook/msauth"
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
 	"github.com/magodo/terraform-provider-outlook/outlook/services"
 	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 	"golang.org/x/oauth2"
+)
+
+const (
+	AUTH_METHOD_AUTH_CODE_FLOW = "auth_code_flow"
+	AUTH_METHOD_DEVICE_FLOW    = "device_flow"
 )
 
 func SupportedResources() map[string]*schema.Resource {
@@ -31,11 +38,33 @@ func SupportedDataSources() map[string]*schema.Resource {
 func Provider() *schema.Provider {
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"browser_enabled": {
-				Type:        schema.TypeBool,
-				Description: "Whether the environment running terraform is able to open a browser",
+			"auth_method": {
+				Type:        schema.TypeString,
+				Description: "The oauth2 authentication method to use.",
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_BROWSER_ENABLED", false),
+				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_AUTH_METHOD", AUTH_METHOD_AUTH_CODE_FLOW),
+				ValidateFunc: validation.StringInSlice([]string{
+					AUTH_METHOD_AUTH_CODE_FLOW,
+					AUTH_METHOD_DEVICE_FLOW,
+				}, false),
+			},
+			"client_id": {
+				Type:        schema.TypeString,
+				Description: "The AzureAD registered application's Object ID (i.e. oauth2 client_id)",
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_CLIENT_ID", "23bd8cd9-a50b-4839-b522-67b77d5db7da"),
+			},
+			"client_secret": {
+				Type:        schema.TypeString,
+				Description: "The AzureAD registered application's secret (i.e. oauth2 client_secret). For native public application, you can leave it unset.",
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_CLIENT_SECRET", ""),
+			},
+			"client_redirect_url": {
+				Type:        schema.TypeString,
+				Description: "The AzureAD registered application's redirect URL",
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_CLIENT_REDIRECT_URL", "http://localhost:3000/"),
 			},
 			"token_cache_path": {
 				Type:        schema.TypeString,
@@ -56,13 +85,10 @@ func Provider() *schema.Provider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (meta interface{}, diags diag.Diagnostics) {
-		const (
-			// Use msgraph tutorial client id as client id. As custom registered app
-			// at tenant AAD level is not able to invoke outlook ms graph API.
-			// (seems only "first-party" app at "common" auth endpoint can work)
-			clientID     = "6731de76-14a6-49ae-97bc-6eba6914391e"
-			clientSecret = "JqQX2PNo9bpM0uEihUPzyrh"
-			redirectURL  = "http://localhost:8888/myapp/"
+		var (
+			clientID     = d.Get("client_id").(string)
+			clientSecret = d.Get("client_secret").(string)
+			redirectURL  = d.Get("client_redirect_url").(string)
 			tenantID     = "common"
 		)
 		scopes := []string{
@@ -87,24 +113,29 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			}()
 		}
 
-		// For device with browser available, use authorization code flow.
-		// Otherwise, use device flow.
 		var (
 			ts  oauth2.TokenSource
 			err error
 		)
 
-		if d.Get("browser_enabled").(bool) {
+		switch d.Get("auth_method").(string) {
+
+		case AUTH_METHOD_AUTH_CODE_FLOW:
 			ts, err = app.ObtainTokenSourceViaAuthorizationCodeFlow(context.Background(), tenantID, clientID, clientSecret, redirectURL, scopes...)
-		} else {
+
+		case AUTH_METHOD_DEVICE_FLOW:
 			ts, err = app.ObtainTokenSourceViaDeviceFlow(context.Background(), tenantID, clientID,
 				func(auth msauth.DeviceAuthorizationAuth) error {
+					// Currently there is no way for a provider to print messsage to user's console unless using debug message.
 					log.Printf("[INFO] To sign in, use a web browser to open %s and enter the code %s to authenticate (with in %d sec)", auth.VerificationURI, auth.UserCode, auth.ExpiresIn)
 					return nil
 				},
 				scopes...,
 			)
+		default:
+			return nil, diag.FromErr(fmt.Errorf("Unknown auth method: %s", d.Get("auth_method").(string)))
 		}
+
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}

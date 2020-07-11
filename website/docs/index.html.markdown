@@ -15,18 +15,42 @@ Use the navigation to the left to read about the available resources.
 
 Terraform supports a number of different methods authenticating to MS Graph:
 
-* Authenticating to MS Graph using Device Flow
 * Authenticating to MS Graph using Authorization Code Flow
+* Authenticating to MS Graph using Device Flow
 
 ---
 
 ~> **NOTE** We do not support non-interactively authentication method currently.
 
+### Authenticating to MS Graph using Authorization Code Flow
+
+The authorization code flow is used for devices which has browser installed.
+
+Set provider configuration as below:
+
+```hcl
+provider "outlook" {
+  auth_method         = "..." # e.g. auth_code_flow
+  client_id           = "..." # e.g. 23bd8cd9-a50b-4839-b522-67b77d5db7da
+  client_secret       = "..." # not necessary for public native app
+  client_redirect_url = "..." # e.g. http://localhost:3000/
+}
+```
+
+Then run terraform command, there will automatically launch a web browser to allow user to do the authentication.
+
 ### Authenticating to MS Graph using Device Flow
 
 The device flow is used for devices which has no browser installed or has limited input capability.
 
-Firstly, you need to either set `browser_enabled` to `false` in provider configuration or set `OUTLOOK_BROWSER_ENABLED` environment variable to `false`.
+Set provider configuration as below:
+
+```hcl
+provider "outlook" {
+  auth_method = "device_flow"
+  client_id   = "..." # e.g. 23bd8cd9-a50b-4839-b522-67b77d5db7da
+}
+```
 
 Currently, terraform doesn't allow provider to print any message directly, we have to output the device login link via terraform log. User needs to enable [terraform debug level](https://www.terraform.io/docs/internals/debugging.html) via setting `TF_LOG` to `DEBUG` or `INFO`.
 
@@ -41,14 +65,6 @@ Then when user runs terraform command and should see following line in logs:
 
 In this point, user should follow the instruction shown above to use another device to finish the login flow.
 
-### Authenticating to MS Graph using Authorization Code Flow
-
-The authorization code flow is used for devices which has browser installed.
-
-Firstly, ensure you have `browser_enabled` set to `true` in provider configuration or `OUTLOOK_BROWSER_ENABLED` environment variable set to `true` (though it is `true` by default).
-
-When user runs terraform command, there will automatically launch a web browser to allow user to do the authentication.
-
 ### Token Cache File
 
 Once the user finishes the authentication, the provider will write the token (including **refresh token**) into a local file (as defined in `token_cache_path` provider configuration or `OUTLOOK_TOKEN_CACHE_PATH` environment variable), in plain text for now. So user needs to make sure to keep this cache file in secure.
@@ -58,7 +74,10 @@ Once the user finishes the authentication, the provider will write the token (in
 ```hcl
 # Configure the Outlook Provider
 provider "outlook" {
-  # browser_enabled = true
+  # auth_method = "auth_code_flow"
+  # client_id = "23bd8cd9-a50b-4839-b522-67b77d5db7da"
+  # client_secret = ""
+  # client_redirect_url = "http://localhost:3000/"
   # token_cache_path = ".terraform-provider-outlook.json"
 }
 
@@ -85,6 +104,12 @@ resource "outlook_message_rule" "example" {
 
 The following arguments are supported:
 
-* `browser_enabled` - (Optional) Whether the environment running terraform is able to open a browser? This will affect the auth method used. This can also be sourced from the `OUTLOOK_BROWSER_ENABLED` Environment Variable. Defaults to `true`.
+* `auth_method` - (Optional) The oauth2 authentication method to use. Possible values are `auth_code_flow` and `device_flow`. This can also be sourced from the `OUTLOOK_AUTH_METHOD` Environment Variable. Defaults to `auth_code_flow`.
+
+* `client_id` - (Optional) The AzureAD registered application's Object ID (i.e. oauth2 client_id). This can also be sourced from the `OUTLOOK_CLIENT_ID` Environment Variable. Defaults to `23bd8cd9-a50b-4839-b522-67b77d5db7da`.
+
+* `client_secret` - (Optional) The AzureAD registered application's secret (i.e. oauth2 client_secret). For native public application, you can leave it unset. This can also be sourced from the `OUTLOOK_CLIENT_SECRET` Environment Variable.
+
+* `client_redirect_url` - (Optional) The AzureAD registered application's redirect URL. This can also be sourced from the `OUTLOOK_CLIENT_REDIRECT_URL` Environment Variable. Defaults to `http://localhost:3000/`.
 
 * `token_cache_path` - (Optional) Token cache file path that the provider will export the token info into this file for reuse. Accordingly, the provider will try to load the token from this file if file exists. This can also be sourced from the `OUTLOOK_TOKEN_CACHE_PATH` Environment Variable. Defaults to `.terraform-provider-outlook.json`.

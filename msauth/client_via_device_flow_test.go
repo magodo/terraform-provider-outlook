@@ -17,8 +17,14 @@ func TestObtainTokenViaDeviceFlow(t *testing.T) {
 		return
 	}
 
-	clientID := "6731de76-14a6-49ae-97bc-6eba6914391e" // msgraph tutorial client id
-	c := msauth.NewClientViaDeviceFlow("common", clientID, nil, "user.read", "offline_access")
+	scopes := []string{
+		"mailboxsettings.readwrite",
+		"mail.readwrite",
+		"offline_access",
+	}
+
+	clientID := "23bd8cd9-a50b-4839-b522-67b77d5db7da"
+	c := msauth.NewClientViaDeviceFlow("common", clientID, nil, scopes...)
 	tk, err := c.ObtainToken(context.Background())
 	if err != nil {
 		t.Fatal(err)

@@ -93,10 +93,10 @@ func (c *clientViaAuthorizationCodeFlow) ObtainToken(ctx context.Context) (*oaut
 				return
 			}
 
-			token, tokenerr, err := c.client.DoToken(req)
-			if tokenerr != nil {
+			token, _, err := c.client.DoToken(req)
+			if err != nil {
 				ch <- authorizationCodeAuth{
-					err: fmt.Errorf("access token response: %s", tokenerr.String()),
+					err: fmt.Errorf("access token response: %w", err),
 				}
 				return
 			}
