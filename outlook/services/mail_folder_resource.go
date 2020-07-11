@@ -36,6 +36,12 @@ func ResourceMailFolder() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"parent_folder_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -43,6 +49,7 @@ func ResourceMailFolder() *schema.Resource {
 func resourceMailFolderCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
 	name := d.Get("name").(string)
+	parent := d.Get("parent_folder_id").(string)
 
 	if d.IsNewResource() {
 		req := client.Request()
@@ -60,7 +67,16 @@ func resourceMailFolderCreate(ctx context.Context, d *schema.ResourceData, meta 
 		DisplayName: utils.String(name),
 	}
 
-	resp, err := client.Request().Add(ctx, param)
+	var (
+		resp *msgraph.MailFolder
+		err  error
+	)
+	if parent == "" {
+		resp, err = client.Request().Add(ctx, param)
+	} else {
+		resp, err = client.ID(parent).ChildFolders().Request().Add(ctx, param)
+	}
+
 	if err != nil {
 		return diag.Errorf("creating Mail Folder %q: %+v", name, err)
 	}
@@ -87,6 +103,7 @@ func resourceMailFolderRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	d.Set("name", resp.DisplayName)
+	d.Set("parent_folder_id", resp.ParentFolderID)
 	return nil
 }
 
@@ -106,6 +123,15 @@ func resourceMailFolderUpdate(ctx context.Context, d *schema.ResourceData, meta 
 
 func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
+
+	// Avoid delete the folder when it has child folder
+	children, err := client.ID(d.Id()).ChildFolders().Request().Get(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if len(children) != 0 {
+		return diag.Errorf("deleting a folder with child folder is not allowed")
+	}
 
 	const dustbinName = "Deleted Items"
 	req := client.Request()
