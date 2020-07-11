@@ -122,9 +122,10 @@ func resourceMailFolderUpdate(ctx context.Context, d *schema.ResourceData, meta 
 }
 
 func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	feature := meta.(*clients.Client).UserFeature
 	client := meta.(*clients.Client).MailFolders
 
-	// Avoid delete the folder when it has child folder
+	// Avoid to delete the folder when it has child folder
 	children, err := client.ID(d.Id()).ChildFolders().Request().Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
@@ -133,24 +134,85 @@ func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.Errorf("deleting a folder with child folder is not allowed")
 	}
 
-	const dustbinName = "Deleted Items"
-	req := client.Request()
-	req.Filter(fmt.Sprintf(`displayName eq '%s'`, dustbinName))
-	objs, err := req.Get(ctx)
+	// Move the containing messages back to inbox before deleting the folder.
+	inboxFolder, err := getTopLevelMailFolderByName(ctx, client, "Inbox")
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if len(objs) != 1 {
-		return diag.Errorf("expect one mail folder with name '%s' but got %d", dustbinName, len(objs))
+	messages, err := client.ID(d.Id()).Messages().Request().Get(ctx)
+	if err != nil {
+		return diag.Errorf("listing messages under mail folder: %+v", err)
 	}
 
-	dustbin := objs[0]
-	if dustbin.ID == nil || *dustbin.ID == "" {
-		return diag.Errorf("empty or nil ID returned for Mail Folder %q ID", dustbinName)
+	log.Println("[WARN] parallelism: ", feature.MailFolderDeleteParallelism)
+	parallelismCh := make(chan interface{}, feature.MailFolderDeleteParallelism)
+	errch := make(chan *diag.Diagnostic)
+	for _, msg := range messages {
+		go func(msg msgraph.Message) {
+
+			parallelismCh <- struct{}{}
+			defer func() { <-parallelismCh }()
+
+			if msg.ID != nil {
+				if _, err := client.ID(d.Id()).Messages().ID(*msg.ID).
+					Move(
+						&msgraph.MessageMoveRequestParameter{
+							DestinationID: inboxFolder.ID,
+						},
+					).Request().Post(ctx); err != nil {
+					errch <- &diag.Diagnostic{
+						Severity: diag.Error,
+						Summary:  fmt.Sprintf("moving message %s: %+v", *msg.ID, err),
+					}
+					return
+				}
+			}
+			errch <- nil
+		}(msg)
+	}
+	var diags diag.Diagnostics
+	for _ = range messages {
+		pdiag := <-errch
+		if pdiag != nil {
+			diags = append(diags, *pdiag)
+		}
+	}
+	if diags != nil {
+		return diags
 	}
 
-	if _, err := client.ID(d.Id()).Move(&msgraph.MailFolderMoveRequestParameter{DestinationID: dustbin.ID}).Request().Post(ctx); err != nil {
+	// Double check whether containing messages are all moved out the folder, in order to avoid
+	// deleting any message by accident (e.g. because of API synchronizationation drift).
+	messages, err = client.ID(d.Id()).Messages().Request().Get(ctx)
+	if err != nil {
+		return diag.Errorf("listing messages again under mail folder: %+v", err)
+	}
+	if len(messages) != 0 {
+		return diag.Errorf("this folder still contains messages (n: %d)", len(messages))
+	}
+
+	// Delete the folder
+	if err := client.ID(d.Id()).Request().Delete(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
+}
+
+func getTopLevelMailFolderByName(ctx context.Context, client *msgraph.UserMailFoldersCollectionRequestBuilder, name string) (*msgraph.MailFolder, error) {
+	req := client.Request()
+	req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
+	objs, err := req.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(objs) != 1 {
+		return nil, fmt.Errorf("expect one mail folder with name '%s' but got %d", name, len(objs))
+	}
+
+	obj := objs[0]
+	if obj.ID == nil || *obj.ID == "" {
+		return nil, fmt.Errorf("empty or nil ID returned for Mail Folder %q ID", name)
+	}
+	return &obj, nil
 }
