@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
+	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 )
 
 func DataSourceMailFolder() *schema.Resource {
@@ -24,6 +25,10 @@ func DataSourceMailFolder() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"parent_folder_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -32,9 +37,21 @@ func dataSourceMailRead(ctx context.Context, d *schema.ResourceData, meta interf
 	client := meta.(*clients.Client).MailFolders
 
 	name := d.Get("name").(string)
-	req := client.Request()
-	req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
-	objs, err := req.Get(ctx)
+	parent := d.Get("parent_folder_id").(string)
+
+	var (
+		objs []msgraph.MailFolder
+		err  error
+	)
+	if parent == "" {
+		req := client.Request()
+		req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
+		objs, err = req.Get(ctx)
+	} else {
+		req := client.ID(parent).ChildFolders().Request()
+		req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
+		objs, err = req.Get(ctx)
+	}
 	if err != nil {
 		return diag.FromErr(err)
 	}

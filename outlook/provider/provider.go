@@ -72,6 +72,7 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OUTLOOK_TOKEN_CACHE_PATH", ".terraform-provider-outlook.json"),
 			},
+			"feature": featureSchema,
 		},
 
 		DataSourcesMap: SupportedDataSources(),
@@ -139,6 +140,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
-		return clients.NewClient(msgraph.NewClient(oauth2.NewClient(context.Background(), ts)).BaseRequestBuilder), nil
+
+		feature := expandFeature(d.Get("feature").([]interface{}))
+		return clients.NewClient(msgraph.NewClient(oauth2.NewClient(context.Background(), ts)).BaseRequestBuilder, feature), nil
 	}
 }
