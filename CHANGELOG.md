@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* `outlook_mail_folder`: deleting a mail folder will move the containing messages to inbox, then delete the folder.
 * Provider: allow user to specify oauth2 client and auth method underused.
 
 ## 0.0.1
