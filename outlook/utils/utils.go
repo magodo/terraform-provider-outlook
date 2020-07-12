@@ -14,6 +14,13 @@ func ResponseErrorWasNotFound(err error) bool {
 	return false
 }
 
+func MessageResponseErrorWasNotFound(err error) bool {
+	if errRes, ok := err.(*msgraph.ErrorResponse); ok {
+		return errRes.StatusCode() == http.StatusNotFound || errRes.StatusCode() == http.StatusInternalServerError
+	}
+	return false
+}
+
 func ImportAsExistsError(resourceName, id string) diag.Diagnostics {
 	msg := "A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
 	return diag.Errorf(msg, id, resourceName)
