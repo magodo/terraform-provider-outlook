@@ -69,7 +69,7 @@ resource "outlook_mail_folder" "test_bar" {
 }
 
 resource "outlook_mail_folder" "test_child" {
-  name = "child%[1]s"
+  name             = "child%[1]s"
   parent_folder_id = outlook_mail_folder.test_foo.id
 }
 `, suffix)
@@ -85,7 +85,7 @@ resource "outlook_mail_folder" "test_bar" {
 }
 
 resource "outlook_mail_folder" "test_child" {
-  name = "child%[1]s"
+  name             = "child%[1]s"
   parent_folder_id = outlook_mail_folder.test_bar.id
 }
 `, suffix)
