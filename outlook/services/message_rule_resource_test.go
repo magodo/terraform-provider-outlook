@@ -58,6 +58,44 @@ func TestAccMessageRuleResource_upgrade(t *testing.T) {
 	})
 }
 
+func TestAccMessageRuleResource_multipleRuleSequence(t *testing.T) {
+	suffix := acctest.RandString(3)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { preCheck(t) },
+		ProviderFactories: providerFactories,
+		// TODO: CheckDestroy: ,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccMessageRuleConfig_multipleRuleSeq1(suffix),
+				// Check:  resource.ComposeTestCheckFunc(
+				// // testCheckMailFolderExists(t, "name"),
+				// ),
+			},
+			importStep("outlook_message_rule.test1"),
+			importStep("outlook_message_rule.test2"),
+			importStep("outlook_message_rule.test3"),
+			{
+				Config: testAccMessageRuleConfig_multipleRuleSeq2(suffix),
+				// Check:  resource.ComposeTestCheckFunc(
+				// // testCheckMailFolderExists(t, "name"),
+				// ),
+			},
+			importStep("outlook_message_rule.test1"),
+			importStep("outlook_message_rule.test2"),
+			importStep("outlook_message_rule.test3"),
+			{
+				Config: testAccMessageRuleConfig_multipleRuleSeq1(suffix),
+				// Check:  resource.ComposeTestCheckFunc(
+				// // testCheckMailFolderExists(t, "name"),
+				// ),
+			},
+			importStep("outlook_message_rule.test1"),
+			importStep("outlook_message_rule.test2"),
+			importStep("outlook_message_rule.test3"),
+		},
+	})
+}
+
 func testAccMessageRuleConfig_basic(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_message_rule" "test" {
@@ -92,6 +130,68 @@ resource "outlook_message_rule" "test" {
     mark_as_read   = true
     copy_to_folder = outlook_mail_folder.test.id
   }
+}
+`, suffix)
+}
+
+func testAccMessageRuleConfig_multipleRuleSeq1(suffix string) string {
+	return fmt.Sprintf(`
+resource "outlook_message_rule" "test1" {
+  name     = "msgrule-%[1]s1"
+  sequence = "1"
+  enabled  = false
+  action {
+    mark_as_read = true
+  }
+}
+resource "outlook_message_rule" "test2" {
+  name     = "msgrule-%[1]s2"
+  sequence = "2"
+  enabled  = false
+  action {
+    mark_as_read = true
+  }
+  depends_on = [outlook_message_rule.test1]
+}
+resource "outlook_message_rule" "test3" {
+  name     = "msgrule-%[1]s3"
+  sequence = "3"
+  enabled  = false
+  action {
+    mark_as_read = true
+  }
+  depends_on = [outlook_message_rule.test2]
+}
+`, suffix)
+}
+
+func testAccMessageRuleConfig_multipleRuleSeq2(suffix string) string {
+	return fmt.Sprintf(`
+resource "outlook_message_rule" "test1" {
+  name     = "msgrule-%[1]s1"
+  sequence = "3"
+  enabled  = false
+  action {
+    mark_as_read = true
+  }
+  depends_on = [outlook_message_rule.test3]
+}
+resource "outlook_message_rule" "test2" {
+  name     = "msgrule-%[1]s2"
+  sequence = "1"
+  enabled  = false
+  action {
+    mark_as_read = true
+  }
+}
+resource "outlook_message_rule" "test3" {
+  name     = "msgrule-%[1]s3"
+  sequence = "2"
+  enabled  = false
+  action {
+    mark_as_read = true
+  }
+  depends_on = [outlook_message_rule.test2]
 }
 `, suffix)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
@@ -244,7 +245,8 @@ func ResourceMessageRule() *schema.Resource {
 			},
 			"sequence": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
+				Computed: true,
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -354,9 +356,13 @@ func resourceMessageRuleCreate(ctx context.Context, d *schema.ResourceData, meta
 		}
 	}
 
+	sequence := d.Get("sequence").(int)
+	if sequence == 0 {
+		sequence = math.MaxInt16
+	}
 	param := &msgraph.MessageRule{
 		DisplayName: utils.String(name),
-		Sequence:    utils.Int(d.Get("sequence").(int)),
+		Sequence:    utils.Int(sequence),
 		IsEnabled:   utils.Bool(d.Get("enabled").(bool)),
 		Conditions:  expandMessageRulePredicate(d.Get("condition").([]interface{})),
 		Exceptions:  expandMessageRulePredicate(d.Get("exception").([]interface{})),
@@ -381,7 +387,7 @@ func resourceMessageRuleRead(ctx context.Context, d *schema.ResourceData, meta i
 
 	resp, err := client.ID(d.Id()).Request().Get(ctx)
 	if err != nil {
-		if utils.ResponseErrorWasNotFound(err) {
+		if utils.MessageResponseErrorWasNotFound(err) {
 			log.Printf("[WARN] Message Rule %q doesn't exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
