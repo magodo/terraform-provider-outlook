@@ -1,13 +1,39 @@
-🚧 This is very much WIP, do not use in production. 🚧
+<p align="center">
+  <img
+    width="400px"
+    src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg"
+    alt="Terraform"
+  />
+</p>
+
+<p align="center">
+  <a href="https://opensource.org/licenses/MPL-2.0"
+    ><img
+      src="https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg"
+      alt="License: MPL 2.0"
+  /></a>
+  <a href="https://github.com/magodo/terraform-provider-outloo/actions"
+    ><img
+      src="https://img.shields.io/github/workflow/status/magodo/terraform-provider-outlook/Provider?label=workflow&style=flat-square"
+      alt="GitHub Actions workflow status"
+  /></a>
+  <a href="https://github.com/magodo/terraform-provider-outlook/releases"
+    ><img
+      src="https://img.shields.io/github/release/magodo/terraform-provider-outlook.svg?style=flat-square"
+      alt="Relase status"/></a
+  ><br />
+  <a href="https://twitter.com/magodo_"
+    ><img
+      src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fmagodo_"
+      alt="Follow me on Twitter"
+  /></a>
+</p>
 
 # Important Disclaimer
 
-I am a Microsoft employee, but this is not an official Microsoft product nor an endorsed product. Purely a project for fun.
+I am a Microsoft employee, but this is not an official Microsoft product nor an endorsed product. Purely a project for fun. 
 
 # Terraform Provider for Outlook
-
-<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
-
 
 ## Requirements
 
