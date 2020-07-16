@@ -99,9 +99,8 @@ func TestAccMessageRuleResource_multipleRuleSequence(t *testing.T) {
 func testAccMessageRuleConfig_basic(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_message_rule" "test" {
-  name     = "msgrule-%[1]s"
-  sequence = "1"
-  enabled  = false
+  name    = "msgrule-%[1]s"
+  enabled = false
   action {
     mark_as_read = true
   }
@@ -116,9 +115,8 @@ resource "outlook_mail_folder" "test" {
 }
 
 resource "outlook_message_rule" "test" {
-  name     = "msgrule-%[1]s"
-  sequence = "2"
-  enabled  = true
+  name    = "msgrule-%[1]s"
+  enabled = true
   condition {
     from_addresses = [
       "foo@bar.com"
@@ -138,7 +136,7 @@ func testAccMessageRuleConfig_multipleRuleSeq1(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_message_rule" "test1" {
   name     = "msgrule-%[1]s1"
-  sequence = "1"
+  sequence = 1
   enabled  = false
   action {
     mark_as_read = true
@@ -146,21 +144,19 @@ resource "outlook_message_rule" "test1" {
 }
 resource "outlook_message_rule" "test2" {
   name     = "msgrule-%[1]s2"
-  sequence = "2"
+  sequence = outlook_message_rule.test1.sequence + 1
   enabled  = false
   action {
     mark_as_read = true
   }
-  depends_on = [outlook_message_rule.test1]
 }
 resource "outlook_message_rule" "test3" {
   name     = "msgrule-%[1]s3"
-  sequence = "3"
+  sequence = outlook_message_rule.test2.sequence + 1
   enabled  = false
   action {
     mark_as_read = true
   }
-  depends_on = [outlook_message_rule.test2]
 }
 `, suffix)
 }
@@ -169,16 +165,15 @@ func testAccMessageRuleConfig_multipleRuleSeq2(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_message_rule" "test1" {
   name     = "msgrule-%[1]s1"
-  sequence = "3"
+  sequence = outlook_message_rule.test3.sequence + 1
   enabled  = false
   action {
     mark_as_read = true
   }
-  depends_on = [outlook_message_rule.test3]
 }
 resource "outlook_message_rule" "test2" {
   name     = "msgrule-%[1]s2"
-  sequence = "1"
+  sequence = 1
   enabled  = false
   action {
     mark_as_read = true
@@ -186,12 +181,11 @@ resource "outlook_message_rule" "test2" {
 }
 resource "outlook_message_rule" "test3" {
   name     = "msgrule-%[1]s3"
-  sequence = "2"
+  sequence = outlook_message_rule.test2.sequence + 1
   enabled  = false
   action {
     mark_as_read = true
   }
-  depends_on = [outlook_message_rule.test2]
 }
 `, suffix)
 }
