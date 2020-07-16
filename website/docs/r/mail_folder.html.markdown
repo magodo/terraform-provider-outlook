@@ -10,7 +10,7 @@ description: |-
 
 Manages a Mail Folder.
 
-~> **NOTE**: Deleting a Mail Folder will not deleting the containing messages, instead those messages will be moved back to inbox. 
+~> **NOTE** Deleting a Mail Folder will not deleting the containing messages, instead those messages will be moved back to inbox. 
 
 ## Example Usage
 
