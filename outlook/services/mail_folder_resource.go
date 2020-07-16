@@ -135,7 +135,7 @@ func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	// Move the containing messages back to inbox before deleting the folder.
-	inboxFolder, err := getTopLevelMailFolderByName(ctx, client, "Inbox")
+	inboxFolder, err := client.ID("inbox").Request().Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -196,23 +196,4 @@ func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 	return nil
-}
-
-func getTopLevelMailFolderByName(ctx context.Context, client *msgraph.UserMailFoldersCollectionRequestBuilder, name string) (*msgraph.MailFolder, error) {
-	req := client.Request()
-	req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
-	objs, err := req.Get(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(objs) != 1 {
-		return nil, fmt.Errorf("expect one mail folder with name '%s' but got %d", name, len(objs))
-	}
-
-	obj := objs[0]
-	if obj.ID == nil || *obj.ID == "" {
-		return nil, fmt.Errorf("empty or nil ID returned for Mail Folder %q ID", name)
-	}
-	return &obj, nil
 }
