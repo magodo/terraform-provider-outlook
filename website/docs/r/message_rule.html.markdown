@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `sequence` - (Optional) Indicates the order in which the rule is executed, among other rules (the lower number executes first). User should specify a unique and sequential number to each rule. Defaults to 65535.
 
-~> **NOTE**: Even if `sequence` is specified, it has no effect on creation. Outlook API will reset the sequence number based on the creation order in FIFO. User can either rerun `terraform apply` until `terraform plan` doesn't give any differences, or explicitly control the creation order via [`depends_on`](https://www.terraform.io/docs/configuration/resources.html#depends_on-explicit-resource-dependencies).
+~> **NOTE**: Even if `sequence` is specified, it has no effect on creation. Outlook API will reset the sequence number based on the creation order in FIFO. User can either rerun `terraform apply` until `terraform plan` doesn't give any differences, or explicitly control the creation order via [`depends_on`](https://www.terraform.io/docs/configuration/resources.html#depends_on-explicit-resource-dependencies) or other means.
 
 * `exception` - (Optional) Same as `condition`, except the messages meet the condition will not be processed.
 
