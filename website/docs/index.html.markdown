@@ -21,7 +21,7 @@ You can use the provider via the [Terraform provider registry](https://registry.
 terraform {
   required_providers {
     outlook = {
-      source  = "magodo/outlook"
+      source = "magodo/outlook"
     }
   }
 }
@@ -101,7 +101,7 @@ Once the user finishes the authentication, the provider will write the token (in
 terraform {
   required_providers {
     outlook = {
-      source  = "magodo/outlook"
+      source = "magodo/outlook"
     }
   }
 }
