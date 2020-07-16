@@ -11,6 +11,30 @@ The Azure Provider can be used to configure Outlook Mail Settings using the Micr
 
 Use the navigation to the left to read about the available resources.
 
+## Install
+
+### Terraform 0.13 and above
+
+You can use the provider via the [Terraform provider registry](https://registry.terraform.io/providers/magodo/outlook). Simply adding following block at the beginning of your main terraform module:
+
+```hcl
+terraform {
+  required_providers {
+    outlook = {
+      source = "magodo/outlook"
+    }
+  }
+}
+```
+
+Then the first invocation of `terraform init` will automatically index the provider from registry and install it.
+
+### Terraform 0.12 or manual installation
+
+You can download a pre-built binary from the [releases](https://github.com/magodo/terraform-provider-outlook/releases) page, these are built using [goreleaser](https://goreleaser.com/) (the [configuration](.goreleaser.yml) is in the repo). You can verify the signature and my [key ownership via Keybase](https://keybase.io/magodo).
+
+Then you need to place the binary in a [plugin location for Terraform](https://www.terraform.io/docs/configuration/providers.html#third-party-plugins) to find it.
+
 ## Authenticating to MS Graph
 
 Terraform supports a number of different methods authenticating to MS Graph:
@@ -72,6 +96,16 @@ Once the user finishes the authentication, the provider will write the token (in
 ## Example Usage
 
 ```hcl
+# Automatically download Outlook Provider
+# (Note: only works for terraform 0.13+)
+terraform {
+  required_providers {
+    outlook = {
+      source = "magodo/outlook"
+    }
+  }
+}
+
 # Configure the Outlook Provider
 provider "outlook" {
   # auth_method = "auth_code_flow"
