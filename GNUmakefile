@@ -78,4 +78,7 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
 
-.PHONY: build test fmtcheck lint tools website website-lint website-test
+testacc: fmtcheck
+	TF_ACC=1 go test $(TEST) -parallel 4 -v $(TESTARGS) -timeout $(TESTTIMEOUT)
+
+.PHONY: build test fmtcheck lint tools website website-lint website-test acctests

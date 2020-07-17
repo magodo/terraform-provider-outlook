@@ -93,6 +93,10 @@ In this point, user should follow the instruction shown above to use another dev
 
 Once the user finishes the authentication, the provider will write the token (including **refresh token**) into a local file (as defined in `token_cache_path` provider configuration or `OUTLOOK_TOKEN_CACHE_PATH` environment variable), in plain text for now. So user needs to make sure to keep this cache file in secure.
 
+## Performance
+
+Because MS Graph has [service throttling](https://docs.microsoft.com/en-us/graph/throttling?view=graph-rest-1.0#outlook-service-limits) for Outlook service. Especially, users are allowed up to **4** concurrent requests. Whilst terraform is able to provision resources with no dependencies in parallel, with a default parallelism of 10. In order to not hit concurrent limit of MS Graph, we recommend user to always run terraform with option `-parallelsim=4` or lower.
+
 ## Example Usage
 
 ```hcl

@@ -101,23 +101,22 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 		// Import token cache if specified, accordingly export the updated token cache at the end of configuring provider.
 		tokenCachePath := d.Get("token_cache_path").(string)
-		if tokenCachePath != "" {
-			if err := app.ImportCache(tokenCachePath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		err := app.ImportCache(tokenCachePath)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				defer func() {
+					if !diags.HasError() {
+						if err := app.ExportCache(tokenCachePath); err != nil {
+							diags = diag.FromErr(err)
+						}
+					}
+				}()
+			} else {
 				return nil, diag.FromErr(err)
 			}
-			defer func() {
-				if !diags.HasError() {
-					if err := app.ExportCache(tokenCachePath); err != nil {
-						diags = diag.FromErr(err)
-					}
-				}
-			}()
 		}
 
-		var (
-			ts  oauth2.TokenSource
-			err error
-		)
+		var ts oauth2.TokenSource
 
 		switch d.Get("auth_method").(string) {
 

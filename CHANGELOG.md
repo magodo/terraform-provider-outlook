@@ -1,3 +1,9 @@
+## 0.0.3 (Unreleased)
+
+BUG FIXES:
+
+* Add announcement about MS Graph Outlook API of up to 4 concurrent requests allowed.
+
 ## 0.0.2
 
 FEATURES:
