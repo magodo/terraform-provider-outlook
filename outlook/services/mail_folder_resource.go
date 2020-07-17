@@ -36,6 +36,12 @@ func ResourceMailFolder() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"parent_folder_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -43,6 +49,7 @@ func ResourceMailFolder() *schema.Resource {
 func resourceMailFolderCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*clients.Client).MailFolders
 	name := d.Get("name").(string)
+	parent := d.Get("parent_folder_id").(string)
 
 	if d.IsNewResource() {
 		req := client.Request()
@@ -60,7 +67,16 @@ func resourceMailFolderCreate(ctx context.Context, d *schema.ResourceData, meta 
 		DisplayName: utils.String(name),
 	}
 
-	resp, err := client.Request().Add(ctx, param)
+	var (
+		resp *msgraph.MailFolder
+		err  error
+	)
+	if parent == "" {
+		resp, err = client.Request().Add(ctx, param)
+	} else {
+		resp, err = client.ID(parent).ChildFolders().Request().Add(ctx, param)
+	}
+
 	if err != nil {
 		return diag.Errorf("creating Mail Folder %q: %+v", name, err)
 	}
@@ -87,6 +103,7 @@ func resourceMailFolderRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	d.Set("name", resp.DisplayName)
+	d.Set("parent_folder_id", resp.ParentFolderID)
 	return nil
 }
 
@@ -105,25 +122,77 @@ func resourceMailFolderUpdate(ctx context.Context, d *schema.ResourceData, meta 
 }
 
 func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	feature := meta.(*clients.Client).UserFeature
 	client := meta.(*clients.Client).MailFolders
 
-	const dustbinName = "Deleted Items"
-	req := client.Request()
-	req.Filter(fmt.Sprintf(`displayName eq '%s'`, dustbinName))
-	objs, err := req.Get(ctx)
+	// Avoid to delete the folder when it has child folder
+	children, err := client.ID(d.Id()).ChildFolders().Request().Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if len(objs) != 1 {
-		return diag.Errorf("expect one mail folder with name '%s' but got %d", dustbinName, len(objs))
+	if len(children) != 0 {
+		return diag.Errorf("deleting a folder with child folder is not allowed")
 	}
 
-	dustbin := objs[0]
-	if dustbin.ID == nil || *dustbin.ID == "" {
-		return diag.Errorf("empty or nil ID returned for Mail Folder %q ID", dustbinName)
+	// Move the containing messages back to inbox before deleting the folder.
+	inboxFolder, err := client.ID("inbox").Request().Get(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	messages, err := client.ID(d.Id()).Messages().Request().Get(ctx)
+	if err != nil {
+		return diag.Errorf("listing messages under mail folder: %+v", err)
 	}
 
-	if _, err := client.ID(d.Id()).Move(&msgraph.MailFolderMoveRequestParameter{DestinationID: dustbin.ID}).Request().Post(ctx); err != nil {
+	log.Println("[WARN] parallelism: ", feature.MailFolderDeleteParallelism)
+	parallelismCh := make(chan interface{}, feature.MailFolderDeleteParallelism)
+	errch := make(chan *diag.Diagnostic)
+	for _, msg := range messages {
+		go func(msg msgraph.Message) {
+
+			parallelismCh <- struct{}{}
+			defer func() { <-parallelismCh }()
+
+			if msg.ID != nil {
+				if _, err := client.ID(d.Id()).Messages().ID(*msg.ID).
+					Move(
+						&msgraph.MessageMoveRequestParameter{
+							DestinationID: inboxFolder.ID,
+						},
+					).Request().Post(ctx); err != nil {
+					errch <- &diag.Diagnostic{
+						Severity: diag.Error,
+						Summary:  fmt.Sprintf("moving message %s: %+v", *msg.ID, err),
+					}
+					return
+				}
+			}
+			errch <- nil
+		}(msg)
+	}
+	var diags diag.Diagnostics
+	for _ = range messages {
+		pdiag := <-errch
+		if pdiag != nil {
+			diags = append(diags, *pdiag)
+		}
+	}
+	if diags != nil {
+		return diags
+	}
+
+	// Double check whether containing messages are all moved out the folder, in order to avoid
+	// deleting any message by accident (e.g. because of API synchronizationation drift).
+	messages, err = client.ID(d.Id()).Messages().Request().Get(ctx)
+	if err != nil {
+		return diag.Errorf("listing messages again under mail folder: %+v", err)
+	}
+	if len(messages) != 0 {
+		return diag.Errorf("this folder still contains messages (n: %d)", len(messages))
+	}
+
+	// Delete the folder
+	if err := client.ID(d.Id()).Request().Delete(ctx); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil

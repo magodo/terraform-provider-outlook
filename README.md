@@ -1,13 +1,39 @@
-🚧 This is very much WIP, do not use in production. 🚧
+<p align="center">
+  <img
+    width="400px"
+    src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg"
+    alt="Terraform"
+  />
+</p>
+
+<p align="center">
+  <a href="https://opensource.org/licenses/MPL-2.0"
+    ><img
+      src="https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg"
+      alt="License: MPL 2.0"
+  /></a>
+  <a href="https://github.com/magodo/terraform-provider-outloo/actions"
+    ><img
+      src="https://img.shields.io/github/workflow/status/magodo/terraform-provider-outlook/Provider?label=workflow&style=flat-square"
+      alt="GitHub Actions workflow status"
+  /></a>
+  <a href="https://github.com/magodo/terraform-provider-outlook/releases"
+    ><img
+      src="https://img.shields.io/github/release/magodo/terraform-provider-outlook.svg?style=flat-square"
+      alt="Relase status"/></a
+  ><br />
+  <a href="https://twitter.com/magodo_"
+    ><img
+      src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fmagodo_"
+      alt="Follow me on Twitter"
+  /></a>
+</p>
 
 # Important Disclaimer
 
-I am a Microsoft employee, but this is not an official Microsoft product nor an endorsed product. Purely a project for fun.
+I am a Microsoft employee, but this is not an official Microsoft product nor an endorsed product. Purely a project for fun. 
 
 # Terraform Provider for Outlook
-
-<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
-
 
 ## Requirements
 
@@ -15,20 +41,18 @@ I am a Microsoft employee, but this is not an official Microsoft product nor an 
 
 ## Using the Provider 
 
-Run following command to install the provider into your `$GOPATH/bin`.
+### Terraform 0.13 and above
 
-```
-$ GO111MODULE=off go get -u github.com/magodo/terraform-provider-outlook
-```
+You can use the provider via the [Terraform provider registry](https://registry.terraform.io/providers/magodo/outlook).
 
-Then follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin) After placing it into your plugins directory,  run `terraform init` to initialize it.
+### Terraform 0.12 or manual installation
+
+You can download a pre-built binary from the [releases](https://github.com/magodo/terraform-provider-outlook/releases) page, these are built using [goreleaser](https://goreleaser.com/) (the [configuration](.goreleaser.yml) is in the repo). You can verify the signature and my [key ownership via Keybase](https://keybase.io/magodo).
+
+If you want to build from source, you can simply use `go build` in the root of the repository.
+
+To use an external provider binary with Terraform ([until the provider registry is GA](https://www.hashicorp.com/blog/announcing-providers-in-the-new-terraform-registry/)), you need to place the binary in a [plugin location for Terraform](https://www.terraform.io/docs/configuration/providers.html#third-party-plugins) to find it.
 
 ## Provider Documents
 
-Currently the documents for this provider is not hosted by the official site [Terraform Providers](https://www.terraform.io/docs/providers/index.html). Please enter the provider directory and build the website locally.
-
-```sh
-$ make website
-```
-
-The commands above will start a docker-based web server powered by [Middleman](https://middlemanapp.com/), which hosts the documents in `website` directory. Simply open `http://localhost:4567/docs/providers/outlook` and enjoy them.
+The document of this provider is available on [Terraform Provider Registry](https://registry.terraform.io/providers/magodo/outlook/latest/docs).

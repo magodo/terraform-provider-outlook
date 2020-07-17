@@ -1,17 +1,13 @@
-## 0.0.1 (Unreleased)
-
-NOTES:
-
-* note1
+## 0.0.2
 
 FEATURES:
 
-* feature1
+* `outlook_mail_folder`: deleting a mail folder will move the containing messages to inbox, then delete the folder.
+* Provider: allow user to specify oauth2 client and auth method underused.
 
-ENHANCEMENTS:
+## 0.0.1
 
-* enhancement1
+FEATURES:
 
-BUG FIXES:
-
-* bugfix1
+* New Resource/Data Source: `outlook_mail_folder`
+* New Resource: `outlook_message_rule`

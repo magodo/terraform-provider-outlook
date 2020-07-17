@@ -13,7 +13,7 @@ import (
 	"golang.org/x/oauth2/microsoft"
 )
 
-type DeviceAuthorization struct {
+type DeviceAuthorizationAuth struct {
 	DeviceCode              string  `json:"device_code"`
 	UserCode                string  `json:"user_code"`
 	VerificationURI         string  `json:"verification_uri"`
@@ -22,25 +22,25 @@ type DeviceAuthorization struct {
 	Interval                *int    `json:"interval"`
 }
 
-type DeviceAuthorizationUserInteractionFunc func(auth DeviceAuthorization) error
+type DeviceAuthorizationCallback func(auth DeviceAuthorizationAuth) error
 
-type publicClientDeviceFlow struct {
+type clientViaDeviceFlow struct {
 	client *HTTPClient
 	config *oauth2.Config
-	f      DeviceAuthorizationUserInteractionFunc
+	f      DeviceAuthorizationCallback
 }
 
-func defaultDeviceAuthorizationUserInteractionFunc(auth DeviceAuthorization) error {
+func defaultDeviceAuthorizationCallback(auth DeviceAuthorizationAuth) error {
 	fmt.Printf("To sign in, use a web browser to open the page %s and enter the code %s to authenticate (with in %d sec).\n",
 		auth.VerificationURI, auth.UserCode, auth.ExpiresIn)
 	return nil
 }
 
-func (c *publicClientDeviceFlow) ID() string {
-	return oauthClientID(c.config.ClientID, c.config.Endpoint.TokenURL, c.config.Scopes)
+func (c *clientViaDeviceFlow) ID() string {
+	return clientIdentifier(c.config.ClientID, c.config.Endpoint.TokenURL, c.config.Scopes)
 }
 
-func (c *publicClientDeviceFlow) ObtainTokenSource(ctx context.Context, t *oauth2.Token) (oauth2.TokenSource, error) {
+func (c *clientViaDeviceFlow) ObtainTokenSource(ctx context.Context, t *oauth2.Token) (oauth2.TokenSource, error) {
 	ts := c.config.TokenSource(ctx, t)
 	if _, err := ts.Token(); err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (c *publicClientDeviceFlow) ObtainTokenSource(ctx context.Context, t *oauth
 	return ts, nil
 }
 
-func (c *publicClientDeviceFlow) ObtainToken(ctx context.Context) (*oauth2.Token, error) {
+func (c *clientViaDeviceFlow) ObtainToken(ctx context.Context) (*oauth2.Token, error) {
 	// Device authorization
 	body := url.Values{
 		"client_id": {c.config.ClientID},
@@ -60,7 +60,7 @@ func (c *publicClientDeviceFlow) ObtainToken(ctx context.Context) (*oauth2.Token
 		return nil, err
 	}
 	req.Header.Add("Accept", "application/x-www-form-urlencoded")
-	var auth DeviceAuthorization
+	var auth DeviceAuthorizationAuth
 	if err := c.client.Do(req, &auth); err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (c *publicClientDeviceFlow) ObtainToken(ctx context.Context) (*oauth2.Token
 	// Notify user to authorize
 	f := c.f
 	if f == nil {
-		f = defaultDeviceAuthorizationUserInteractionFunc
+		f = defaultDeviceAuthorizationCallback
 	}
 	if err := f(auth); err != nil {
 		return nil, fmt.Errorf("invoking callback: %w", err)
@@ -116,10 +116,10 @@ func (c *publicClientDeviceFlow) ObtainToken(ctx context.Context) (*oauth2.Token
 	}
 }
 
-func NewPublicClientViaDeviceFlow(tenantID string, clientID string, f DeviceAuthorizationUserInteractionFunc, scopes ...string) PublicClient {
+func NewClientViaDeviceFlow(tenantID string, clientID string, f DeviceAuthorizationCallback, scopes ...string) Client {
 	client := retryablehttp.NewClient()
 	client.Logger = nil
-	return &publicClientDeviceFlow{
+	return &clientViaDeviceFlow{
 		client: NewHTTPClient(client),
 		config: &oauth2.Config{
 			ClientID: clientID,

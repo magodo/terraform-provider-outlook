@@ -10,7 +10,7 @@ description: |-
 
 Manages a Message Rule.
 
-## Example Usage
+## Example Usage (Single Rule)
 
 ```hcl
 resource "outlook_mail_folder" "example" {
@@ -18,14 +18,45 @@ resource "outlook_mail_folder" "example" {
 }
 
 resource "outlook_message_rule" "example" {
+  name    = "move message from foo@bar.com to Foo"
+  enabled = true
+  condition {
+    from_addresses = ["foo@bar.com"]
+  }
+  action {
+    move_to_folder = outlook_mail_folder.example.id
+  }
+}
+```
+
+## Example Usage (Multiple Rules)
+
+```hcl
+resource "outlook_mail_folder" "example" {
+  name = "Foo"
+}
+
+resource "outlook_message_rule" "move" {
   name     = "move message from foo@bar.com to Foo"
-  sequence = "1"
+  sequence = 1
   enabled  = true
   condition {
     from_addresses = ["foo@bar.com"]
   }
   action {
-    copy_to_folder = outlook_mail_folder.example.id
+    move_to_folder = outlook_mail_folder.example.id
+  }
+}
+
+resource "outlook_message_rule" "mark" {
+  name     = "flag"
+  sequence = outlook_message_rule.move.sequence + 1 # Explicitly refer to the "move" rule so as to ensure the creation order.
+  enabled  = true
+  condition {
+    from_addresses = ["foo@bar.com"]
+  }
+  action {
+    mark_importance = "low"
   }
 }
 ```
@@ -38,13 +69,15 @@ The following arguments are supported:
 
 * `action` - (Required) A `action` block as defined below.
 
-* `sequence` - (Required) Indicates the order in which the rule is executed, among other rules.
-
 ---
 
 * `condition` - (Optional) A `condition` block as defined below. The messages meet the condition will be processed.
 
 * `enabled` - (Optional) Should the Message Rule be enabled?
+
+* `sequence` - (Optional) Indicates the order in which the rule is executed, among other rules (the lower number executes first). User should specify a **unique** and **sequential number from starts 1** to each rule. By default, it equals to the amount of existing rules plus one (i.e. append to the end).
+
+~> **NOTE** Even if `sequence` is specified, it has no effect on creation. Outlook API will reset the sequence number based on the creation order in FIFO. User can rerun `terraform apply` until `terraform plan` doesn't give any differences. A best practice is to explicitly control the creation order via using the reference between resources, as illustrated in example above.
 
 * `exception` - (Optional) Same as `condition`, except the messages meet the condition will not be processed.
 
