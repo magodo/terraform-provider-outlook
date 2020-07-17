@@ -51,7 +51,7 @@ func testAccOutlookCategory_basic(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_category" "test" {
   name  = "category-%s"
-  color = "Red"
+  color = "Black"
 }
 `, suffix)
 }
@@ -60,7 +60,7 @@ func testAccOutlookCategory_update(suffix string) string {
 	return fmt.Sprintf(`
 resource "outlook_category" "test" {
   name  = "category-%s"
-  color = "Blue"
+  color = "Brown"
 }
 `, suffix)
 }
