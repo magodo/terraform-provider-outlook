@@ -48,6 +48,7 @@ func ResourceCategory() *schema.Resource {
 }
 
 var (
+	// colorMap fetched from https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0
 	colorMap = map[string]msgraph.CategoryColor{
 		"None":          msgraph.CategoryColorVNone,
 		"Red":           msgraph.CategoryColorVPreset0,
