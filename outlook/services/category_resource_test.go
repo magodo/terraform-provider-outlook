@@ -11,7 +11,7 @@ import (
 func TestAccOutlookCategory_basic(t *testing.T) {
 	suffix := acctest.RandString(3)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { preCheck(t) },
 		ProviderFactories: providerFactories,
 		// TODO: CheckDestroy: ,
@@ -28,7 +28,7 @@ func TestAccOutlookCategory_basic(t *testing.T) {
 func TestAccOutlookCategory_update(t *testing.T) {
 	suffix := acctest.RandString(3)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { preCheck(t) },
 		ProviderFactories: providerFactories,
 		// TODO: CheckDestroy: ,
