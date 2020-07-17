@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -36,7 +35,6 @@ func ResourceCategory() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"color": {
@@ -87,13 +85,14 @@ func resourceArmCategoryCreate(ctx context.Context, d *schema.ResourceData, meta
 
 	if d.IsNewResource() {
 		req := client.Request()
-		req.Filter(fmt.Sprintf(`displayName eq '%s'`, name))
+		// we do not use filter here since the filter in category list API does not work
 		objs, err := req.Get(ctx)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		if len(objs) != 0 {
-			return utils.ImportAsExistsError("outlook_category", *(objs[0].ID))
+		existing := getCategoryByName(objs, name)
+		if existing != nil {
+			return utils.ImportAsExistsError("outlook_category", *existing.ID)
 		}
 	}
 
@@ -184,4 +183,16 @@ func flattenCategoryColor(m map[string]msgraph.CategoryColor, color *msgraph.Cat
 		}
 	}
 	return "None"
+}
+
+func getCategoryByName(categories []msgraph.OutlookCategory, displayName string) *msgraph.OutlookCategory {
+	for _, c := range categories {
+		if c.DisplayName == nil {
+			continue
+		}
+		if displayName == *c.DisplayName {
+			return &c
+		}
+	}
+	return nil
 }

@@ -15,6 +15,7 @@ func NewClient(b msgraph.BaseRequestBuilder, feature UserFeature) *Client {
 	b.SetURL(b.URL() + "/me")
 	userClient := msgraph.UserRequestBuilder{BaseRequestBuilder: b}
 	outlookClient := msgraph.OutlookUserRequestBuilder{BaseRequestBuilder: b}
+	outlookClient.SetURL(outlookClient.URL() + "/outlook")
 	return &Client{
 		UserFeature:  feature,
 		MailFolders:  userClient.MailFolders(),
