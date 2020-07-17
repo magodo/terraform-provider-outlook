@@ -14,7 +14,7 @@ Manages a Category.
 
 ```hcl
 resource "outlook_category" "example" {
-  name = "Foo"
+  name  = "Foo"
   color = "Red"
 }
 ```
