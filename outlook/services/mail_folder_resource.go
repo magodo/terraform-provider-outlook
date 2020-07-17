@@ -171,7 +171,7 @@ func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta 
 		}(msg)
 	}
 	var diags diag.Diagnostics
-	for _ = range messages {
+	for range messages {
 		pdiag := <-errch
 		if pdiag != nil {
 			diags = append(diags, *pdiag)
