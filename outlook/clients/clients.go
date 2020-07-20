@@ -1,21 +1,23 @@
 package clients
 
 import (
+	"net/http"
+
 	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 )
 
 type Client struct {
 	UserFeature
+	Batch        *msgraph.BatchRequestBuilder
 	MailFolders  *msgraph.UserMailFoldersCollectionRequestBuilder
 	MessageRules *msgraph.MailFolderMessageRulesCollectionRequestBuilder
 }
 
-func NewClient(b msgraph.BaseRequestBuilder, feature UserFeature) *Client {
-	b.SetURL(b.URL() + "/me")
-	userClient := msgraph.UserRequestBuilder{BaseRequestBuilder: b}
+func NewClient(client *http.Client, feature UserFeature) *Client {
 	return &Client{
 		UserFeature:  feature,
-		MailFolders:  userClient.MailFolders(),
-		MessageRules: userClient.MailFolders().ID("inbox").MessageRules(),
+		Batch:        msgraph.NewBatch(client),
+		MailFolders:  msgraph.NewClient(client).Me().MailFolders(),
+		MessageRules: msgraph.NewClient(client).Me().MailFolders().ID("inbox").MessageRules(),
 	}
 }

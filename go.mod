@@ -11,5 +11,7 @@ require (
 	github.com/sergi/go-diff v1.0.0
 	github.com/yaegashi/msgraph.go v0.1.2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/tools v0.0.0-20200216192241-b320d3a0f5a2
+	golang.org/x/tools v0.0.0-20200529172331-a64b76657301
 )
+
+replace github.com/yaegashi/msgraph.go => ../msgraph.go

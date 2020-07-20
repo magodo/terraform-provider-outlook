@@ -13,7 +13,6 @@ import (
 	"github.com/magodo/terraform-provider-outlook/msauth"
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
 	"github.com/magodo/terraform-provider-outlook/outlook/services"
-	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 	"golang.org/x/oauth2"
 )
 
@@ -142,6 +141,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 		}
 
 		feature := expandFeature(d.Get("feature").([]interface{}))
-		return clients.NewClient(msgraph.NewClient(oauth2.NewClient(context.Background(), ts)).BaseRequestBuilder, feature), nil
+		return clients.NewClient(oauth2.NewClient(context.Background(), ts), feature), nil
 	}
 }

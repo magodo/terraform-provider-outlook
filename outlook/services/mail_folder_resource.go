@@ -122,7 +122,6 @@ func resourceMailFolderUpdate(ctx context.Context, d *schema.ResourceData, meta 
 }
 
 func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	feature := meta.(*clients.Client).UserFeature
 	client := meta.(*clients.Client).MailFolders
 
 	// Avoid to delete the folder when it has child folder
@@ -144,40 +143,32 @@ func resourceMailFolderDelete(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.Errorf("listing messages under mail folder: %+v", err)
 	}
 
-	log.Println("[WARN] parallelism: ", feature.MailFolderDeleteParallelism)
-	parallelismCh := make(chan interface{}, feature.MailFolderDeleteParallelism)
-	errch := make(chan *diag.Diagnostic)
+	batch := meta.(*clients.Client).Batch.Request()
 	for _, msg := range messages {
-		go func(msg msgraph.Message) {
-
-			parallelismCh <- struct{}{}
-			defer func() { <-parallelismCh }()
-
-			if msg.ID != nil {
-				if _, err := client.ID(d.Id()).Messages().ID(*msg.ID).
-					Move(
-						&msgraph.MessageMoveRequestParameter{
-							DestinationID: inboxFolder.ID,
-						},
-					).Request().Post(ctx); err != nil {
-					errch <- &diag.Diagnostic{
-						Severity: diag.Error,
-						Summary:  fmt.Sprintf("moving message %s: %+v", *msg.ID, err),
-					}
-					return
-				}
-			}
-			errch <- nil
-		}(msg)
-	}
-	var diags diag.Diagnostics
-	for _ = range messages {
-		pdiag := <-errch
-		if pdiag != nil {
-			diags = append(diags, *pdiag)
+		if msg.ID != nil {
+			client.ID(d.Id()).Messages().ID(*msg.ID).Move(
+				&msgraph.MessageMoveRequestParameter{
+					DestinationID: inboxFolder.ID,
+				},
+			).Request().BatchPost(batch)
 		}
 	}
-	if diags != nil {
+	results, err := batch.Run(ctx)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	var diags diag.Diagnostics
+	for _, result := range results {
+		if result.Error != nil {
+			diags = append(diags,
+				diag.Diagnostic{
+					Severity: diag.Error,
+					Summary:  result.Error.Error(),
+				})
+		}
+	}
+	if diags.HasError() {
 		return diags
 	}
 
