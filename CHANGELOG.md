@@ -1,3 +1,9 @@
+## 0.0.3 (Unreleased)
+
+BUG FXIES:
+
+* `outlook_mail_folder`: remove the ability to move mail out of folder in parallel
+
 ## 0.0.2
 
 FEATURES:
