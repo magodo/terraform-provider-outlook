@@ -49,5 +49,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Categories can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import outlook_message_rule.example <id>
+terraform import outlook_category.example <id>
 ```
