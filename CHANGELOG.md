@@ -1,5 +1,9 @@
 ## 0.0.3 (Unreleased)
 
+FEATURES:
+
+* New Resource/Data Source: `outlook_category`
+
 BUG FIXES:
 
 * Add announcement about MS Graph Outlook API of up to 4 concurrent requests allowed.
