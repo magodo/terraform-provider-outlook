@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * Add announcement about MS Graph Outlook API of up to 4 concurrent requests allowed.
+* `outlook_mail_folder`: remove the ability to move mail out of folder in parallel
 
 ## 0.0.2
 
