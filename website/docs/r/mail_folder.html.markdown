@@ -10,7 +10,7 @@ description: |-
 
 Manages a Mail Folder.
 
-~> **NOTE** Deleting a Mail Folder will not deleting the containing messages, instead those messages will be moved back to inbox. 
+~> **NOTE** Deleting a Mail Folder will not deleting the containing messages, instead those messages will be moved back to inbox. Because of the concurrency limit of MS Graph API, we can only move mails one by one, which might be unexpectedly slow.
 
 ## Example Usage
 
@@ -25,6 +25,7 @@ resource "outlook_mail_folder" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Mail Folder.
+* `parent_folder_id` - (Optional) The parent folder id where this Mail Folder resides in.
 
 ## Attributes Reference
 
