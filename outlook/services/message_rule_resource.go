@@ -36,13 +36,12 @@ func ResourceMessageRule() *schema.Resource {
 					Optional: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
-				//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
-				//                 "categories": {
-				//                     Type:     schema.TypeSet,
-				//                     MinItems: 1,
-				//                     Optional: true,
-				//                     Elem:     &schema.Schema{Type: schema.TypeString},
-				//                 },
+				"categories": {
+					Type:     schema.TypeSet,
+					MinItems: 1,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
 				"from_addresses": {
 					Type:     schema.TypeSet,
 					MinItems: 1,
@@ -214,10 +213,7 @@ func ResourceMessageRule() *schema.Resource {
 		},
 	}
 
-	// TODO
-	//     actionList := []string{"action.0.assign_categories", ""action.0.copy_to_folder", "action.0.delete", "action.0.forward_as_attachment_to", "action.0.forward_to",
-	//         "action.0.mark_as_read", "action.0.mark_importance", "action.0.move_to_folder", "action.0.permanent_delete", "action.0.redirect_to"}
-	actionList := []string{"action.0.copy_to_folder", "action.0.delete", "action.0.forward_as_attachment_to", "action.0.forward_to",
+	actionList := []string{"action.0.assign_categories", "action.0.copy_to_folder", "action.0.delete", "action.0.forward_as_attachment_to", "action.0.forward_to",
 		"action.0.mark_as_read", "action.0.mark_importance", "action.0.move_to_folder", "action.0.permanent_delete", "action.0.redirect_to"}
 
 	return &schema.Resource{
@@ -262,14 +258,13 @@ func ResourceMessageRule() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
-						//                         "assign_categories": {
-						//                             Type:     schema.TypeSet,
-						//                             MinItems: 1,
-						//                             Optional: true,
-						//                             Elem:     &schema.Schema{Type: schema.TypeString},
-						// 							   AtLeastOneOf: actionList,
-						//                         },
+						"assign_categories": {
+							Type:         schema.TypeSet,
+							MinItems:     1,
+							Optional:     true,
+							Elem:         &schema.Schema{Type: schema.TypeString},
+							AtLeastOneOf: actionList,
+						},
 						"copy_to_folder": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -412,7 +407,7 @@ func resourceMessageRuleRead(ctx context.Context, d *schema.ResourceData, meta i
 }
 
 func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*clients.Client).MessageRules.ID(d.Id())
+	client := meta.(*clients.Client).MessageRules
 
 	var param msgraph.MessageRule
 
@@ -442,7 +437,7 @@ func resourceMessageRuleUpdate(ctx context.Context, d *schema.ResourceData, meta
 		param.Actions = expandMessageRuleAction(d.Get("action").([]interface{}))
 	}
 
-	if err := client.Request().Update(ctx, &param); err != nil {
+	if err := client.ID(d.Id()).Request().Update(ctx, &param); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -466,8 +461,7 @@ func expandMessageRulePredicate(input []interface{}) *msgraph.MessageRulePredica
 	output := &msgraph.MessageRulePredicates{
 		BodyContains:          *utils.ExpandSlice(raw["body_contains"].(*schema.Set).List(), "", nil).(*[]string),
 		BodyOrSubjectContains: *utils.ExpandSlice(raw["body_or_subject_contains"].(*schema.Set).List(), "", nil).(*[]string),
-		//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
-		//Categories: *utils.ExpandSlice(raw["categories"].(*schema.Set).List(), "",nil).(*[]string),
+		Categories:            *utils.ExpandSlice(raw["categories"].(*schema.Set).List(), "", nil).(*[]string),
 		FromAddresses: *utils.ExpandSlice(raw["from_addresses"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
 			return msgraph.Recipient{
 				EmailAddress: &msgraph.EmailAddress{
@@ -519,10 +513,9 @@ func expandMessageRuleAction(input []interface{}) *msgraph.MessageRuleActions {
 
 	raw := input[0].(map[string]interface{})
 	output := &msgraph.MessageRuleActions{
-		//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
-		//AssignCategories: 	*utils.ExpandSlice(raw["assign_categories"].(*schema.Set).List(), "",nil).(*[]string),
-		CopyToFolder: utils.ToPtrOrNil(raw["copy_to_folder"].(string)).(*string),
-		Delete:       utils.ToPtrOrNil(raw["delete"].(bool)).(*bool),
+		AssignCategories: *utils.ExpandSlice(raw["assign_categories"].(*schema.Set).List(), "", nil).(*[]string),
+		CopyToFolder:     utils.ToPtrOrNil(raw["copy_to_folder"].(string)).(*string),
+		Delete:           utils.ToPtrOrNil(raw["delete"].(bool)).(*bool),
 		ForwardAsAttachmentTo: *utils.ExpandSlice(raw["forward_as_attachment_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
 			return msgraph.Recipient{
 				EmailAddress: &msgraph.EmailAddress{
@@ -576,8 +569,7 @@ func flattenMessageRulePredicate(input *msgraph.MessageRulePredicates) []interfa
 		map[string]interface{}{
 			"body_contains":            utils.FlattenSlicePtr(utils.ToPtr(input.BodyContains).(*[]string), nil),
 			"body_or_subject_contains": utils.FlattenSlicePtr(utils.ToPtr(input.BodyOrSubjectContains).(*[]string), nil),
-			//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
-			//"categories": utils.FlattenSlicePtr(utils.ToPtr(input.Categories).(*[]string), nil),
+			"categories":               utils.FlattenSlicePtr(utils.ToPtr(input.Categories).(*[]string), nil),
 			"from_addresses": utils.FlattenSlicePtr(utils.ToPtr(input.FromAddresses).(*[]msgraph.Recipient), func(i interface{}) interface{} {
 				addr := i.(msgraph.Recipient).EmailAddress
 				if addr == nil {
@@ -627,10 +619,9 @@ func flattenMessageRuleAction(input *msgraph.MessageRuleActions) interface{} {
 	}
 	return []interface{}{
 		map[string]interface{}{
-			//TODO: support this after implement [categories](https://docs.microsoft.com/en-us/graph/api/resources/outlookcategory?view=graph-rest-1.0)
-			//"assign_categories": utils.FlattenSlicePtr(utils.ToPtr(input.AssignCategories).(*[]string), nil),
-			"copy_to_folder": utils.SafeDeref(input.CopyToFolder),
-			"delete":         utils.SafeDeref(input.Delete),
+			"assign_categories": utils.FlattenSlicePtr(utils.ToPtr(input.AssignCategories).(*[]string), nil),
+			"copy_to_folder":    utils.SafeDeref(input.CopyToFolder),
+			"delete":            utils.SafeDeref(input.Delete),
 			"forward_as_attachment_to": utils.FlattenSlicePtr(utils.ToPtr(input.ForwardAsAttachmentTo).(*[]msgraph.Recipient), func(i interface{}) interface{} {
 				addr := i.(msgraph.Recipient).EmailAddress
 				if addr == nil {
