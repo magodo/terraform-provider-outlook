@@ -133,7 +133,7 @@ resource "outlook_message_rule" "example" {
     from_addresses = ["foo@bar.com"]
   }
   action {
-    copy_to_folder = outlook_mail_folder.example.id
+    move_to_folder = outlook_mail_folder.example.id
   }
 }
 ```
