@@ -92,7 +92,7 @@ func resourceArmCategoryCreate(ctx context.Context, d *schema.ResourceData, meta
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		existing := getCategoryByName(objs, name)
+		existing := getOneCategoryByName(objs, name)
 		if existing != nil {
 			return utils.ImportAsExistsError("outlook_category", *existing.ID)
 		}
@@ -187,7 +187,7 @@ func flattenCategoryColor(m map[string]msgraph.CategoryColor, color *msgraph.Cat
 	return "None"
 }
 
-func getCategoryByName(categories []msgraph.OutlookCategory, displayName string) *msgraph.OutlookCategory {
+func getOneCategoryByName(categories []msgraph.OutlookCategory, displayName string) *msgraph.OutlookCategory {
 	for _, c := range categories {
 		if c.DisplayName == nil {
 			continue

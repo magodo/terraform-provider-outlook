@@ -18,7 +18,7 @@ func TestAccOutlookCategoryDataSource_basic(t *testing.T) {
 				Config: testAccDsOutlookCategory_basic(acctest.RandString(3)),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.outlook_category.test", "name"),
-					resource.TestCheckResourceAttr("data.outlook_category.test", "color", "Red"),
+					resource.TestCheckResourceAttr("data.outlook_category.test", "color", "Black"),
 				),
 			},
 		},

@@ -2,12 +2,12 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/magodo/terraform-provider-outlook/outlook/clients"
+	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 )
 
 func DataSourceOutlookCategory() *schema.Resource {
@@ -38,22 +38,31 @@ func dataSourceOutlookCategoryRead(ctx context.Context, d *schema.ResourceData, 
 	name := d.Get("name").(string)
 
 	req := client.Request()
-	req.Filter(fmt.Sprintf("displayName eq '%s'", name))
+	// we do not use filter here since the filter in category list API does not work
 	objs, err := req.Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	if len(objs) != 1 {
-		return diag.Errorf("expect one category with display name %q but got %q", name, len(objs))
+
+	var category *msgraph.OutlookCategory
+	for _, c := range objs {
+		if c.DisplayName == nil {
+			continue
+		}
+		if name == *c.DisplayName {
+			if category != nil {
+				return diag.Errorf("more than one categories are called %s", name)
+			}
+			category = &c
+		}
 	}
 
-	obj := objs[0]
-	if obj.ID == nil || *obj.ID == "" {
+	if category.ID == nil || *category.ID == "" {
 		return diag.Errorf("empty of nil ID returned for Outlook Category %q", name)
 	}
 
-	d.SetId(*obj.ID)
-	if err := d.Set("color", flattenCategoryColor(colorMap, obj.Color)); err != nil {
+	d.SetId(*category.ID)
+	if err := d.Set("color", flattenCategoryColor(colorMap, category.Color)); err != nil {
 		return diag.Errorf("setting `color`: %+v", err)
 	}
 
