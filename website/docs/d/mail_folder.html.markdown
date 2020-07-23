@@ -26,7 +26,15 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Mail Folder.
+* `name` - (Optional) The name of this Mail Folder.
+
+~> **NOTE** Either `name` or `well_known_name` should be specified.
+
+* `parent_folder_id` - (Optional) The ID of the parent folder of the Mail Folder which is specified by `name`.
+
+* `well_known_name` - (Optional) The [well-known Mail Folder name](https://docs.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0).
+
+~> **NOTE** Either `name` or `well_known_name` should be specified.
 
 ## Attributes Reference
 

@@ -25,6 +25,23 @@ func TestAccMailFolderDataSource_basic(t *testing.T) {
 	})
 }
 
+func TestAccMailFolderDataSource_wellKnownName(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { preCheck(t) },
+		ProviderFactories: providerFactories,
+		// TODO: CheckDestroy: ,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDsMailFolderConfig_wellKnownName("inbox"),
+				Check: resource.ComposeTestCheckFunc(
+					// testCheckMailFolderExists(t, "name"),
+					resource.TestCheckResourceAttr("data.outlook_mail_folder.test", "well_known_name", "inbox"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDsMailFolderConfig_basic(suffix string) string {
 	return fmt.Sprintf(`
 %s
@@ -33,4 +50,12 @@ data "outlook_mail_folder" "test" {
   name = outlook_mail_folder.test.name
 }
 `, testAccMailFolderConfig_basic(suffix))
+}
+
+func testAccDsMailFolderConfig_wellKnownName(name string) string {
+	return fmt.Sprintf(`
+data "outlook_mail_folder" "test" {
+  well_known_name = "%s"
+}
+`, name)
 }
