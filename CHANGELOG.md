@@ -1,3 +1,9 @@
+## 0.0.4
+
+FEATURES:
+
+* Data Source `outlook_mail_folder` supports `well_known_name`.
+
 ## 0.0.3 
 
 FEATURES:
