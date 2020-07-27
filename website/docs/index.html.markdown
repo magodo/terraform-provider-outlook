@@ -127,7 +127,7 @@ resource "outlook_mail_folder" "example" {
 # Create a message rule to move message meet certain condition into the folder created above
 resource "outlook_message_rule" "example" {
   name     = "move message from foo@bar.com to Foo"
-  sequence = "1"
+  sequence = 1
   enabled  = true
   condition {
     from_addresses = ["foo@bar.com"]
