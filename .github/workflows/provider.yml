@@ -1,13 +1,15 @@
 name: Provider
 on: [pull_request]
-env:
-  PATH: "$PATH:$HOME/go/bin"
 
 jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
     steps:
+      - name: Setup env
+        run: |
+          echo "$PATH:$HOME/go/bin" >> $GITHUB_PATH
+
       - name: Set up Go 1.19
         uses: actions/setup-go@v3
         with:
