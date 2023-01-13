@@ -15,7 +15,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: make tools
@@ -34,7 +34,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: make tools
@@ -54,7 +54,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: make tools
@@ -73,7 +73,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: make tools
@@ -92,7 +92,7 @@ jobs:
         id: go
 
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: make tools
@@ -112,7 +112,7 @@ jobs:
 #         id: go
 #
 #       - name: Check out code into the Go module directory
-#         uses: actions/checkout@v2
+#         uses: actions/checkout@v3
 #
 #       - name: Install dependencies
 #         run: make tools
