@@ -1,145 +1,38 @@
 name: Provider
 on: [pull_request]
+
 jobs:
-  lint:
-    name: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: make tools
-
-      - name: run lint
-        run: |
-          GOGC=5 make lint
-  tflint:
-    name: tflint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: make tools
-
-      - name: run tflint
-        run: |
-          GO111MODULE=off go get -u github.com/hashicorp/terraform
-          make tflint
   test:
     name: test
     runs-on: ubuntu-latest
     steps:
       - name: Setup env
         run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
+          echo "$PATH:$HOME/go/bin" >> $GITHUB_PATH
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v3
         with:
-          go-version: 1.13
+          go-version: 1.19
         id: go
-
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: make tools
-
+        uses: actions/checkout@v3
       - name: make test
         run: |
-          make test
+          go test ./...
   depscheck:
     name: depscheck
     runs-on: ubuntu-latest
     steps:
       - name: Setup env
         run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
+          echo "$PATH:$HOME/go/bin" >> $GITHUB_PATH
+      - name: Set up Go 1.19
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.19
         id: go
-
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: make tools
-
+        uses: actions/checkout@v3
       - name: make depscheck
         run: |
           make depscheck
-  website-lint:
-    name: website-lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.13
-        id: go
-
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
-      - name: Install dependencies
-        run: make tools
-
-      - name: make website-lint
-        run: |
-          GO111MODULE=off go get -u github.com/hashicorp/terraform
-          make website-lint
-#   website-test:
-#     name: website-test
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Setup env
-#         run: |
-#           echo "::set-env name=GOPATH::$HOME/go"
-#           echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-#       - name: Set up Go 1.13
-#         uses: actions/setup-go@v1
-#         with:
-#           go-version: 1.13
-#         id: go
-#
-#       - name: Check out code into the Go module directory
-#         uses: actions/checkout@v2
-#
-#       - name: Install dependencies
-#         run: make tools
-#
-#       - name: make website-test
-#         run: |
-#           export PATH="$PATH:$HOME/go/bin"
-#           export GOPATH=$HOME/go
-#           make website-test

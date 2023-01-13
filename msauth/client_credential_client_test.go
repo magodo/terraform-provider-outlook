@@ -8,6 +8,7 @@ import (
 )
 
 func TestObtainTokenViaClientCredentials(t *testing.T) {
+	t.Skip("Skipping as the msgraph tutorial app is disabled")
 	clientID := "6731de76-14a6-49ae-97bc-6eba6914391e" // msgraph tutorial client id
 	clientCredential := `JqQX2PNo9bpM0uEihUPzyrh`
 	c := msauth.NewClientCredentialClient("common", clientID, clientCredential, "https://graph.microsoft.com/.default")
