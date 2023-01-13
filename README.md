@@ -1,7 +1,7 @@
 <p align="center">
   <img
     width="400px"
-    src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg"
+    src="https://www.datocms-assets.com/2885/1620155116-brandhcterraformverticalcolor.svg"
     alt="Terraform"
   />
 </p>
