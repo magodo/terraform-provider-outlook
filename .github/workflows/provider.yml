@@ -1,18 +1,17 @@
 name: Provider
 on: [pull_request]
+env:
+  PATH: "$PATH:$HOME/go/bin"
+
 jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
+      - name: Set up Go 1.19
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.19
         id: go
 
       - name: Check out code into the Go module directory
@@ -28,14 +27,10 @@ jobs:
     name: tflint
     runs-on: ubuntu-latest
     steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
+      - name: Set up Go 1.19
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.19
         id: go
 
       - name: Check out code into the Go module directory
@@ -52,14 +47,10 @@ jobs:
     name: test
     runs-on: ubuntu-latest
     steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
+      - name: Set up Go 1.19
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.19
         id: go
 
       - name: Check out code into the Go module directory
@@ -75,14 +66,10 @@ jobs:
     name: depscheck
     runs-on: ubuntu-latest
     steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
+      - name: Set up Go 1.19
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.19
         id: go
 
       - name: Check out code into the Go module directory
@@ -98,14 +85,10 @@ jobs:
     name: website-lint
     runs-on: ubuntu-latest
     steps:
-      - name: Setup env
-        run: |
-          echo "::set-env name=GOPATH::$HOME/go"
-          echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-      - name: Set up Go 1.13
+      - name: Set up Go 1.19
         uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.19
         id: go
 
       - name: Check out code into the Go module directory
@@ -122,14 +105,10 @@ jobs:
 #     name: website-test
 #     runs-on: ubuntu-latest
 #     steps:
-#       - name: Setup env
-#         run: |
-#           echo "::set-env name=GOPATH::$HOME/go"
-#           echo "::set-env name=PATH::$PATH:$HOME/go/bin"
-#       - name: Set up Go 1.13
+#       - name: Set up Go 1.19
 #         uses: actions/setup-go@v1
 #         with:
-#           go-version: 1.13
+#           go-version: 1.19
 #         id: go
 #
 #       - name: Check out code into the Go module directory
