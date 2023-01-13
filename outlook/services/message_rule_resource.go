@@ -534,7 +534,7 @@ func expandMessageRuleAction(input []interface{}) *msgraph.MessageRuleActions {
 		MarkImportance:  utils.ToPtrOrNil(msgraph.Importance(raw["mark_importance"].(string))).(*msgraph.Importance),
 		MoveToFolder:    utils.ToPtrOrNil(raw["move_to_folder"].(string)).(*string),
 		PermanentDelete: utils.ToPtrOrNil(raw["permanent_delete"].(bool)).(*bool),
-		RedirectTo: *utils.ExpandSlice(raw["forward_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
+		RedirectTo: *utils.ExpandSlice(raw["redirect_to"].(*schema.Set).List(), msgraph.Recipient{}, func(i interface{}) interface{} {
 			return msgraph.Recipient{
 				EmailAddress: &msgraph.EmailAddress{
 					Address: utils.String(i.(string)),
